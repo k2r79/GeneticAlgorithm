@@ -26,13 +26,85 @@ describe("A Genetic Code", function() {
     var geneticCode;
 
     before(function(done) {
-        geneticCode = new GeneticCode(250000);
+        geneticCode = new GeneticCode(4);
+
+        setChromosomes();
+        setIdeal();
 
         done();
     });
 
+    function setChromosomes() {
+        geneticCode.chromosomes[0].genes = [
+            [ 0, 0, 1, 0, 1, 0, 1, 1],
+            [ 1, 0, 0, 0, 1, 0, 1, 0],
+            [ 1, 0, 1, 1, 0, 0, 0, 1]
+        ];
+
+        geneticCode.chromosomes[1].genes = [
+            [ 1, 0, 1, 1, 1, 0, 1, 0],
+            [ 0, 1, 0, 1, 1, 0, 0, 0],
+            [ 0, 0, 1, 1, 0, 1, 0, 1]
+        ];
+
+        geneticCode.chromosomes[2].genes = [
+            [ 1, 0, 0, 0, 1, 0, 0, 1],
+            [ 0, 0, 0, 1, 1, 0, 0, 1],
+            [ 1, 1, 0, 1, 1, 1, 0, 0]
+        ];
+
+        geneticCode.chromosomes[3].genes = [
+            [ 1, 1, 1, 1, 0, 0, 0, 1],
+            [ 0, 0, 1, 1, 0, 1, 1, 0],
+            [ 0, 0, 1, 1, 1, 0, 1, 0]
+        ];
+    }
+
+    function setIdeal() {
+        geneticCode.ideal[0].genes = [
+            [ 1, 1, 1, 0, 1, 1, 0, 1],
+            [ 0, 0, 0, 1, 1, 0, 1, 0],
+            [ 0, 0, 1, 1, 0, 0, 1, 1]
+        ];
+
+        geneticCode.ideal[1].genes = [
+            [ 1, 0, 1, 0, 1, 0, 0, 0],
+            [ 0, 0, 0, 0, 1, 0, 0, 0],
+            [ 1, 0, 1, 0, 0, 1, 1, 1]
+        ];
+
+        geneticCode.ideal[2].genes = [
+            [ 0, 0, 0, 0, 1, 0, 1, 1],
+            [ 1, 0, 1, 0, 1, 0, 0, 1],
+            [ 1, 1, 0, 1, 1, 1, 1, 1]
+        ];
+
+        geneticCode.ideal[3].genes = [
+            [ 1, 1, 1, 1, 0, 1, 0, 0],
+            [ 0, 0, 0, 1, 1, 1, 1, 0],
+            [ 0, 1, 1, 1, 0, 0, 1, 1]
+        ];
+    }
+
     it("has multiple chromosomes", function(done) {
-        expect(geneticCode.chromosomes.length).to.equal(250000);
+        expect(geneticCode.chromosomes.length).to.equal(4);
+
+        done();
+    });
+
+    it("has an ideal the same size as it's chromosomes", function(done) {
+        expect(geneticCode.ideal.length).to.equal(geneticCode.chromosomes.length);
+
+        done();
+    });
+
+    it("has a fitness function", function(done) {
+        geneticCode.computeFitness();
+
+        expect(geneticCode.chromosomes[0].fitness).to.equal(16);
+        expect(geneticCode.chromosomes[1].fitness).to.equal(17);
+        expect(geneticCode.chromosomes[2].fitness).to.equal(17);
+        expect(geneticCode.chromosomes[3].fitness).to.equal(17);
 
         done();
     });
