@@ -131,11 +131,34 @@ describe("A Genetic Code", function() {
         var mates = [];
 
         geneticCode.selection(function(couple) {
+            expect(couple.length).to.equal(2);
+
             mates.push(couple);
         }, function() {
             expect(_.difference(_.flatten(mates), geneticCode.chromosomes).length).to.equal(0);
 
             done();
         });
+    });
+
+    it("has a crossover phase", function(done) {
+        geneticCode.crossover(
+            [ geneticCode.chromosomes[0], geneticCode.chromosomes[1] ],
+            [
+                [ 3, 6 ],
+                [ 1, 4 ],
+                [ 4, 8 ]
+            ], function() {
+                expect(geneticCode.chromosomes[0].genes[0]).to.deep.equal([ 1, 0, 1, 0, 1, 0, 1, 0 ]);
+                expect(geneticCode.chromosomes[0].genes[1]).to.deep.equal([ 0, 0, 0, 0, 1, 0, 0, 0 ]);
+                expect(geneticCode.chromosomes[0].genes[2]).to.deep.equal([ 0, 0, 1, 1, 0, 0, 0, 1 ]);
+
+                expect(geneticCode.chromosomes[1].genes[0]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 1, 1 ]);
+                expect(geneticCode.chromosomes[1].genes[1]).to.deep.equal([ 1, 1, 0, 1, 1, 0, 1, 0 ]);
+                expect(geneticCode.chromosomes[1].genes[2]).to.deep.equal([ 1, 0, 1, 1, 0, 1, 0, 1 ]);
+
+                done();
+            }
+        );
     });
 });

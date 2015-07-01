@@ -54,10 +54,15 @@ var GeneticCode = function(numberOfChromosomes) {
         var matedChromosomeIndices = [];
         while (matedChromosomeIndices.length != this.chromosomes.length) {
             var couple = [];
-            var randomValue = Math.random();
 
             var chromosomeIndex = 0;
-            while (couple.length < 2 && chromosomeIndex < this.chromosomes.length) {
+            while (couple.length < 2) {
+                var randomValue = Math.random();
+
+                if (chromosomeIndex >= this.chromosomes.length) {
+                    chromosomeIndex = 0;
+                }
+
                 if (randomValue >= this.chromosomes[chromosomeIndex].matingRange[0]
                     && randomValue < this.chromosomes[chromosomeIndex].matingRange[1]
                     && !_.contains(matedChromosomeIndices, chromosomeIndex)) {
@@ -73,4 +78,32 @@ var GeneticCode = function(numberOfChromosomes) {
 
         finished();
     };
+
+    this.crossover = function(chromosomes, offsets, callback) {
+        var genes = [
+            [
+                crossoverGenes([ chromosomes[0].genes[0], chromosomes[1].genes[0] ], offsets[0]),
+                crossoverGenes([ chromosomes[0].genes[1], chromosomes[1].genes[1] ], offsets[1]),
+                crossoverGenes([ chromosomes[0].genes[2], chromosomes[1].genes[2] ], offsets[2])
+            ],
+            [
+                crossoverGenes([ chromosomes[1].genes[0], chromosomes[0].genes[0] ], offsets[0]),
+                crossoverGenes([ chromosomes[1].genes[1], chromosomes[0].genes[1] ], offsets[1]),
+                crossoverGenes([ chromosomes[1].genes[2], chromosomes[0].genes[2] ], offsets[2])
+            ]
+        ]
+
+        chromosomes[0].genes = genes[0];
+        chromosomes[1].genes = genes[1];
+
+        callback();
+    };
+
+    function crossoverGenes(genes, offsets) {
+        return _.flatten([
+            _.first(genes[1], offsets[0]),
+            _.last(_.first(genes[0], offsets[1]), offsets[1] - offsets[0]),
+            _.last(genes[1], genes[0].length - offsets[1])
+        ]);
+    }
 };
