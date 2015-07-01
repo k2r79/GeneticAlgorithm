@@ -21,6 +21,22 @@ var GeneticCode = function(numberOfChromosomes) {
         this.ideal[chromosomeIndex] = new Chromosome();
     }
 
+    this.live = function(callback) {
+        this.selection(function(couple) {
+            var offsets = [
+                [ _.random(0, 8), _.random(0, 8) ],
+                [ _.random(0, 8), _.random(0, 8) ],
+                [ _.random(0, 8), _.random(0, 8) ]
+            ];
+
+            this.crossover(couple, offsets, function(chromosomes) {
+                _.each(chromosomes, function(chromosome, chromosomeIndex) {
+                    this.mutate(chromosome, callback);
+                });
+            });
+        });
+    };
+
     this.computeFitness = function() {
         _.each(this.chromosomes, function(chromosome, chromosomeIndex) {
 
@@ -104,7 +120,7 @@ var GeneticCode = function(numberOfChromosomes) {
         chromosomes[0].genes = genes[0];
         chromosomes[1].genes = genes[1];
 
-        callback();
+        callback(chromosomes);
 
         function crossoverGenes(genes, offsets) {
             return _.flatten([

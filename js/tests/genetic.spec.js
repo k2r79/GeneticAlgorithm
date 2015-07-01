@@ -173,4 +173,18 @@ describe("A Genetic Code", function() {
             done();
         });
     });
+
+    it("can live !", function(done) {
+        geneticCode.selection = sinon.spy();
+        geneticCode.crossover = sinon.spy();
+        geneticCode.mutate = sinon.spy();
+
+        geneticCode.live(function() {
+            expect(geneticCode.selection.called).to.equal(true);
+            expect(geneticCode.crossover.called).to.equal(true);
+            expect(geneticCode.mutate.called).to.equal(true);
+
+            done();
+        });
+    });
 });
