@@ -3,8 +3,31 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Genetic Algorithm</title>
+
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="js/genetic.js"></script>
 </head>
 <body>
+    <canvas id="canvas" width="800" height="400"></canvas>
 
+    <script>
+        $(document).ready(function() {
+            var canvas = $("#canvas")[0];
+            var context = canvas.getContext("2d");
+            var idealImage = new Image();
+
+            var geneticCode = new GeneticCode(canvas.width * canvas.height);
+
+            drawIdealImage();
+
+            function drawIdealImage() {
+                idealImage.onload = function () {
+                    context.drawImage(idealImage, 0, 0);
+                };
+
+                idealImage.src = "images/minion.jpg";
+            }
+        });
+    </script>
 </body>
 </html>

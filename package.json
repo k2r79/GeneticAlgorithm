@@ -17,6 +17,7 @@
   "homepage": "https://github.com/k2r79/GeneticAlgorithm",
   "dependencies": {
     "chai": "^3.0.0",
+    "jquery": "^2.1.4",
     "mocha": "^2.2.5",
     "underscore": "^1.8.3"
   }
