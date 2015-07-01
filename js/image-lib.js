@@ -20,3 +20,18 @@ ImageLib.pixelToBinary = function(pixel) {
         return binaries;
     }
 };
+
+ImageLib.imageDataToBinary = function(imageData) {
+    var binaryData = [];
+
+    for (var imageDataIndex = 0; imageDataIndex < imageData.length; imageDataIndex += 4) {
+        binaryData = binaryData.concat(ImageLib.pixelToBinary([
+            imageData[imageDataIndex],
+            imageData[imageDataIndex + 1],
+            imageData[imageDataIndex + 2],
+            imageData[imageDataIndex + 3]
+        ]));
+    }
+
+    return binaryData;
+};
