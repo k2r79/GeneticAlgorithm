@@ -108,4 +108,34 @@ describe("A Genetic Code", function() {
 
         done();
     });
+
+    it("generates a mating wheel", function(done) {
+        geneticCode.generateMatingWheel();
+
+        expect(geneticCode.chromosomes[0].matingRange[0]).to.equal(0);
+        expect(geneticCode.chromosomes[0].matingRange[1]).to.equal(0.238);
+
+        expect(geneticCode.chromosomes[1].matingRange[0]).to.equal(0.238);
+        expect(geneticCode.chromosomes[1].matingRange[1]).to.equal(0.491);
+
+        expect(geneticCode.chromosomes[2].matingRange[0]).to.equal(0.491);
+        expect(geneticCode.chromosomes[2].matingRange[1]).to.equal(0.744);
+
+        expect(geneticCode.chromosomes[3].matingRange[0]).to.equal(0.744);
+        expect(geneticCode.chromosomes[3].matingRange[1]).to.equal(0.997);
+
+        done();
+    });
+
+    it("has a selection phase", function(done) {
+        var mates = [];
+
+        geneticCode.selection(function(couple) {
+            mates.push(couple);
+        }, function() {
+            expect(_.difference(_.flatten(mates), geneticCode.chromosomes).length).to.equal(0);
+
+            done();
+        });
+    });
 });

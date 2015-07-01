@@ -1,6 +1,7 @@
 var Chromosome = function() {
     this.genes = [];
     this.fitness = null;
+    this.matingRange = [];
 
     for (var geneIndex = 0; geneIndex < 3; geneIndex++) {
         this.genes[geneIndex] = [];
@@ -30,8 +31,46 @@ var GeneticCode = function(numberOfChromosomes) {
                 }, 0, this);
             }, this);
 
-            console.log("%d - %d", chromosome.genes.length * chromosome.genes[0].length, differences);
             chromosome.fitness = chromosome.genes.length * chromosome.genes[0].length - differences;
         }, this.ideal);
+    };
+
+    this.generateMatingWheel = function() {
+        this.computeFitness();
+
+        var totalFitness = _.reduce(this.chromosomes, function(memo, chromosome, index) {
+            return memo + chromosome.fitness;
+        }, 0, this);
+
+        _.each(this.chromosomes, function(chromosome, chromosomeIndex) {
+            chromosome.matingRange[0] = chromosomeIndex > 0 ? this.chromosomes[chromosomeIndex - 1].matingRange[1] : 0;
+            chromosome.matingRange[1] = chromosome.matingRange[0] + Math.floor((chromosome.fitness / totalFitness) * 1000) / 1000;
+        }, this);
+    };
+
+    this.selection = function(callback, finished) {
+        this.generateMatingWheel();
+
+        var matedChromosomeIndices = [];
+        while (matedChromosomeIndices.length != this.chromosomes.length) {
+            var couple = [];
+            var randomValue = Math.random();
+
+            var chromosomeIndex = 0;
+            while (couple.length < 2 && chromosomeIndex < this.chromosomes.length) {
+                if (randomValue >= this.chromosomes[chromosomeIndex].matingRange[0]
+                    && randomValue < this.chromosomes[chromosomeIndex].matingRange[1]
+                    && !_.contains(matedChromosomeIndices, chromosomeIndex)) {
+                    couple.push(this.chromosomes[chromosomeIndex]);
+                    matedChromosomeIndices.push(chromosomeIndex);
+                }
+
+                chromosomeIndex++;
+            }
+
+            callback(couple);
+        }
+
+        finished();
     };
 };
