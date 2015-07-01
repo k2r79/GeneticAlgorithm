@@ -53,20 +53,24 @@ var GeneticCode = function(numberOfChromosomes) {
 
         var matedChromosomeIndices = [];
         while (matedChromosomeIndices.length != this.chromosomes.length) {
+            mateCouple(this.chromosomes, callback);
+        }
+
+        finished();
+
+        function mateCouple(chromosomes, callback) {
             var couple = [];
 
             var chromosomeIndex = 0;
             while (couple.length < 2) {
                 var randomValue = Math.random();
 
-                if (chromosomeIndex >= this.chromosomes.length) {
+                if (chromosomeIndex >= chromosomes.length) {
                     chromosomeIndex = 0;
                 }
 
-                if (randomValue >= this.chromosomes[chromosomeIndex].matingRange[0]
-                    && randomValue < this.chromosomes[chromosomeIndex].matingRange[1]
-                    && !_.contains(matedChromosomeIndices, chromosomeIndex)) {
-                    couple.push(this.chromosomes[chromosomeIndex]);
+                if (isMateable()) {
+                    couple.push(chromosomes[chromosomeIndex]);
                     matedChromosomeIndices.push(chromosomeIndex);
                 }
 
@@ -74,9 +78,13 @@ var GeneticCode = function(numberOfChromosomes) {
             }
 
             callback(couple);
-        }
 
-        finished();
+            function isMateable() {
+                return randomValue >= chromosomes[chromosomeIndex].matingRange[0]
+                    && randomValue < chromosomes[chromosomeIndex].matingRange[1]
+                    && !_.contains(matedChromosomeIndices, chromosomeIndex);
+            }
+        }
     };
 
     this.crossover = function(chromosomes, offsets, callback) {
@@ -97,13 +105,13 @@ var GeneticCode = function(numberOfChromosomes) {
         chromosomes[1].genes = genes[1];
 
         callback();
-    };
 
-    function crossoverGenes(genes, offsets) {
-        return _.flatten([
-            _.first(genes[1], offsets[0]),
-            _.last(_.first(genes[0], offsets[1]), offsets[1] - offsets[0]),
-            _.last(genes[1], genes[0].length - offsets[1])
-        ]);
-    }
+        function crossoverGenes(genes, offsets) {
+            return _.flatten([
+                _.first(genes[1], offsets[0]),
+                _.last(_.first(genes[0], offsets[1]), offsets[1] - offsets[0]),
+                _.last(genes[1], genes[0].length - offsets[1])
+            ]);
+        }
+    };
 };
