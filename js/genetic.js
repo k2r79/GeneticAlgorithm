@@ -114,4 +114,14 @@ var GeneticCode = function(numberOfChromosomes) {
             ]);
         }
     };
+
+    this.mutate = function(chromosome, callback) {
+        _.each(chromosome.genes, function(gene, geneIndex) {
+            var index = _.random(0, 7);
+
+            gene[index] = gene[index] == 1 ? 0 : 1;
+        });
+
+        callback();
+    };
 };

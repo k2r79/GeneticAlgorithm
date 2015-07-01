@@ -161,4 +161,16 @@ describe("A Genetic Code", function() {
             }
         );
     });
+
+    it("has a mutation phase", function(done) {
+        var geneInitialStates = _.clone(geneticCode.chromosomes[0].genes);
+
+        geneticCode.mutate(geneticCode.chromosomes[0], function() {
+            _.each(geneticCode.chromosomes[0].genes, function(gene, geneIndex) {
+                expect(geneIndex).to.not.deep.equal(geneInitialStates[geneIndex]);
+            });
+
+            done();
+        });
+    });
 });
