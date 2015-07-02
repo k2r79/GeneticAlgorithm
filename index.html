@@ -10,7 +10,7 @@
     <script src="js/image-lib.js"></script>
 </head>
 <body>
-    <canvas id="canvas" width="100" height="50"></canvas>
+    <canvas id="canvas" width="400" height="200"></canvas>
     <button id="live">Make it live !</button>
 
     <script>
@@ -18,7 +18,7 @@
         var context = canvas.getContext("2d");
         var idealImage = new Image();
 
-        var geneticCode = new GeneticCode(canvas.width / 2 * canvas.height);
+        var geneticCode = new GeneticCode(4, canvas.width / 2 * canvas.height);
 
         $(document).ready(function() {
             drawIdealImage();
@@ -27,7 +27,6 @@
             drawGeneticImage();
 
             $('#live').click(function() {
-                debugger;
                 geneticCode.live(drawGeneticImage);
             });
 
@@ -42,7 +41,7 @@
             function setIdealImage() {
                 var binaryImageData = ImageLib.imageDataToBinary(context.getImageData(0, 0, canvas.width / 2, canvas.height).data);
 
-                _.each(geneticCode.ideal, function(chromosome, chromosomeIndex) {
+                _.each(geneticCode.ideal.chromosomes, function(chromosome, chromosomeIndex) {
                     var binaryImageDataIndex = chromosomeIndex * 3;
 
                     chromosome.genes = [
@@ -56,7 +55,7 @@
             function drawGeneticImage() {
                 var geneticImageData = context.createImageData(canvas.width / 2, canvas.height);
 
-                _.each(geneticCode.chromosomes, function(chromosome, chromosomeIndex) {
+                _.each(geneticCode.fittestIndividual().chromosomes, function(chromosome, chromosomeIndex) {
                     _.each(ImageLib.imageDataToRGBA(chromosome.genes), function(pixel, pixelIndex) {
                         geneticImageData.data[chromosomeIndex * 4 + pixelIndex] = pixel;
                     });

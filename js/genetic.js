@@ -38,18 +38,16 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     }
 
     this.live = function(callback) {
-        this.selection(function(couple) {
+        this.selection(function(matingPool) {
             var offsets = [
                 [ _.random(0, 8), _.random(0, 8) ],
                 [ _.random(0, 8), _.random(0, 8) ],
                 [ _.random(0, 8), _.random(0, 8) ]
             ];
 
-            self.crossover(couple, offsets, function(chromosomes) {
-                _.each(chromosomes, function(chromosome, chromosomeIndex) {
-                    self.mutate(chromosome, callback);
-                }, this);
-            });
+            self.crossover([ _.sample(matingPool), _.sample(matingPool) ], offsets);
+
+            callback();
         });
     };
 
@@ -109,24 +107,29 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         callback(matingPool);
     };
 
-    this.crossover = function(chromosomes, offsets, callback) {
-        var genes = [
-            [
-                crossoverGenes([ chromosomes[0].genes[0], chromosomes[1].genes[0] ], offsets[0]),
-                crossoverGenes([ chromosomes[0].genes[1], chromosomes[1].genes[1] ], offsets[1]),
-                crossoverGenes([ chromosomes[0].genes[2], chromosomes[1].genes[2] ], offsets[2])
-            ],
-            [
-                crossoverGenes([ chromosomes[1].genes[0], chromosomes[0].genes[0] ], offsets[0]),
-                crossoverGenes([ chromosomes[1].genes[1], chromosomes[0].genes[1] ], offsets[1]),
-                crossoverGenes([ chromosomes[1].genes[2], chromosomes[0].genes[2] ], offsets[2])
-            ]
-        ]
+    this.crossover = function(individuals, offsets) {
+        _.each(individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
+            crossoverChromosomes([ chromosome, individuals[1].chromosomes[chromosomeIndex] ]);
+        });
 
-        chromosomes[0].genes = genes[0];
-        chromosomes[1].genes = genes[1];
+        function crossoverChromosomes(chromosomes) {
+            var genes = [
+                [
+                    crossoverGenes([ chromosomes[0].genes[0], chromosomes[1].genes[0] ], offsets[0]),
+                    crossoverGenes([ chromosomes[0].genes[1], chromosomes[1].genes[1] ], offsets[1]),
+                    crossoverGenes([ chromosomes[0].genes[2], chromosomes[1].genes[2] ], offsets[2])
+                ],
+                [
+                    crossoverGenes([ chromosomes[1].genes[0], chromosomes[0].genes[0] ], offsets[0]),
+                    crossoverGenes([ chromosomes[1].genes[1], chromosomes[0].genes[1] ], offsets[1]),
+                    crossoverGenes([ chromosomes[1].genes[2], chromosomes[0].genes[2] ], offsets[2])
+                ]
+            ];
 
-        callback(chromosomes);
+
+            chromosomes[0].genes = genes[0];
+            chromosomes[1].genes = genes[1];
+        }
 
         function crossoverGenes(genes, offsets) {
             return _.flatten([
@@ -137,14 +140,28 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         }
     };
 
-    this.mutate = function(chromosome, callback) {
-        _.each(chromosome.genes, function(gene, geneIndex) {
-            var index = _.random(0, 7);
+    //this.mutate = function(individual) {
+    //    _.each(individual.chromosomes, function(chromosome, chromosomeIndex) {
+    //        mutateChromosome(chromosome);
+    //    });
+    //
+    //    function mutateChromosome(chromosome) {
+    //        _.each(chromosome.genes, function(gene, geneIndex) {
+    //            _.each(gene, function(component, componentIndex) {
+    //                var index = _.random(0, 7);
+    //
+    //                gene[index] = component == 1 ? 0 : 1;
+    //            });
+    //        });
+    //    }
+    //};
 
-            gene[index] = gene[index] == 1 ? 0 : 1;
+    this.fittestIndividual = function() {
+        this.computeFitness();
+
+        return _.max(individuals, function(individual) {
+            return individual.fitness;
         });
-
-        callback();
     };
 
     this.individuals = individuals;
