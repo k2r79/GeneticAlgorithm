@@ -1,3 +1,15 @@
+var Individual = function(numberOfChromosomes) {
+    var chromosomes = [];
+    var fitness;
+
+    for (var chromosomeIndex = 0; chromosomeIndex < numberOfChromosomes; chromosomeIndex++) {
+        chromosomes.push(new Chromosome());
+    }
+
+    this.chromosomes = chromosomes;
+    this.fitness = fitness;
+};
+
 var Chromosome = function() {
     this.genes = [];
     this.fitness = null;
@@ -11,15 +23,15 @@ var Chromosome = function() {
     }
 };
 
-var GeneticCode = function(numberOfChromosomes) {
+var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     var self = this;
 
-    this.chromosomes = [];
-    this.ideal = [];
+    var individuals = [];
+    var ideal;
 
-    for (var chromosomeIndex = 0; chromosomeIndex < numberOfChromosomes; chromosomeIndex++) {
-        this.chromosomes[chromosomeIndex] = new Chromosome();
-        this.ideal[chromosomeIndex] = new Chromosome();
+    for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
+        individuals[individualIndex] = new Individual(numberOfChromosomes);
+        ideal = new Individual(numberOfChromosomes);
     }
 
     this.live = function(callback) {
@@ -39,17 +51,30 @@ var GeneticCode = function(numberOfChromosomes) {
     };
 
     this.computeFitness = function() {
-        _.each(this.chromosomes, function(chromosome, chromosomeIndex) {
+        _.each(individuals, function(individual, individualIndex) {
 
-            var differences = 0;
-            _.each(chromosome.genes, function(gene, geneIndex) {
-                differences += _.reduce(gene, function(memo, value, index) {
-                    return memo + Math.abs(value - this[chromosomeIndex].genes[geneIndex][index]);
-                }, 0, this);
-            }, this);
+            var differences = computeIndividualDifferences(individual, ideal);
 
-            chromosome.fitness = chromosome.genes.length * chromosome.genes[0].length - differences;
-        }, this.ideal);
+            individual.fitness = 1 - (differences / (individual.chromosomes.length * individual.chromosomes[0].genes.length * individual.chromosomes[0].genes[0].length));
+        });
+
+        function computeIndividualDifferences(individual, idealIndividual) {
+            return _.reduce(individual.chromosomes, function(memo, chromosome, index) {
+                return memo + computeChromosomeDifferences(chromosome, idealIndividual.chromosomes[index]);
+            }, 0);
+        }
+
+        function computeChromosomeDifferences(chromosome, idealChromosome) {
+            return _.reduce(chromosome.genes, function(memo, gene, index) {
+                return memo + computeGeneDifference(gene, idealChromosome.genes[index]);
+            }, 0);
+        }
+
+        function computeGeneDifference(gene, idealGene) {
+            return _.reduce(gene, function(memo, component, index) {
+                return memo + Math.abs(component - idealGene[index]);
+            }, 0);
+        }
     };
 
     this.selection = function(callback, finished) {
@@ -117,4 +142,7 @@ var GeneticCode = function(numberOfChromosomes) {
 
         callback();
     };
+
+    this.individuals = individuals;
+    this.ideal = ideal;
 };

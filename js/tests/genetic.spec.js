@@ -21,39 +21,53 @@ describe("A Chromosome", function() {
     });
 });
 
+describe("An Individual", function() {
+
+    var individual;
+
+    before(function(done) {
+        individual = new Individual(4);
+
+        done();
+    });
+
+    it("has chromosomes", function(done) {
+        expect(individual.chromosomes.length).to.equal(4);
+
+        done();
+    });
+});
+
 describe("A Genetic Code", function() {
 
     var geneticCode;
 
     before(function(done) {
-        geneticCode = new GeneticCode(4);
-
-        setChromosomes();
-        setIdeal();
+        geneticCode = new GeneticCode(2, 2);
 
         done();
     });
 
     function setChromosomes() {
-        geneticCode.chromosomes[0].genes = [
+        geneticCode.individuals[0].chromosomes[0].genes = [
             [ 0, 0, 1, 0, 1, 0, 1, 1],
             [ 1, 0, 0, 0, 1, 0, 1, 0],
             [ 1, 0, 1, 1, 0, 0, 0, 1]
         ];
 
-        geneticCode.chromosomes[1].genes = [
+        geneticCode.individuals[0].chromosomes[1].genes = [
             [ 1, 0, 1, 1, 1, 0, 1, 0],
             [ 0, 1, 0, 1, 1, 0, 0, 0],
             [ 0, 0, 1, 1, 0, 1, 0, 1]
         ];
 
-        geneticCode.chromosomes[2].genes = [
+        geneticCode.individuals[1].chromosomes[0].genes = [
             [ 1, 0, 0, 0, 1, 0, 0, 1],
             [ 0, 0, 0, 1, 1, 0, 0, 1],
             [ 1, 1, 0, 1, 1, 1, 0, 0]
         ];
 
-        geneticCode.chromosomes[3].genes = [
+        geneticCode.individuals[1].chromosomes[1].genes = [
             [ 1, 1, 1, 1, 0, 0, 0, 1],
             [ 0, 0, 1, 1, 0, 1, 1, 0],
             [ 0, 0, 1, 1, 1, 0, 1, 0]
@@ -61,50 +75,41 @@ describe("A Genetic Code", function() {
     }
 
     function setIdeal() {
-        geneticCode.ideal[0].genes = [
+        geneticCode.ideal.chromosomes[0].genes = [
             [ 1, 1, 1, 0, 1, 1, 0, 1],
             [ 0, 0, 0, 1, 1, 0, 1, 0],
             [ 0, 0, 1, 1, 0, 0, 1, 1]
         ];
 
-        geneticCode.ideal[1].genes = [
+        geneticCode.ideal.chromosomes[1].genes = [
             [ 1, 0, 1, 0, 1, 0, 0, 0],
             [ 0, 0, 0, 0, 1, 0, 0, 0],
             [ 1, 0, 1, 0, 0, 1, 1, 1]
         ];
-
-        geneticCode.ideal[2].genes = [
-            [ 0, 0, 0, 0, 1, 0, 1, 1],
-            [ 1, 0, 1, 0, 1, 0, 0, 1],
-            [ 1, 1, 0, 1, 1, 1, 1, 1]
-        ];
-
-        geneticCode.ideal[3].genes = [
-            [ 1, 1, 1, 1, 0, 1, 0, 0],
-            [ 0, 0, 0, 1, 1, 1, 1, 0],
-            [ 0, 1, 1, 1, 0, 0, 1, 1]
-        ];
     }
 
-    it("has multiple chromosomes", function(done) {
-        expect(geneticCode.chromosomes.length).to.equal(4);
+    it("has multiple individuals", function(done) {
+        expect(geneticCode.individuals.length).to.equal(2);
 
         done();
     });
 
-    it("has an ideal the same size as it's chromosomes", function(done) {
-        expect(geneticCode.ideal.length).to.equal(geneticCode.chromosomes.length);
+    it("has an ideal", function(done) {
+        _.each(geneticCode.individuals, function(individual, individualIndex) {
+            expect(geneticCode.ideal.chromosomes.length).to.equal(individual.chromosomes.length);
+        });
 
         done();
     });
 
     it("has a fitness function", function(done) {
+        setChromosomes();
+        setIdeal();
+
         geneticCode.computeFitness();
 
-        expect(geneticCode.chromosomes[0].fitness).to.equal(16);
-        expect(geneticCode.chromosomes[1].fitness).to.equal(17);
-        expect(geneticCode.chromosomes[2].fitness).to.equal(17);
-        expect(geneticCode.chromosomes[3].fitness).to.equal(17);
+        expect(geneticCode.individuals[0].fitness).to.equal(0.6875);
+        expect(geneticCode.individuals[1].fitness).to.equal(0.45833333333333337);
 
         done();
     });
