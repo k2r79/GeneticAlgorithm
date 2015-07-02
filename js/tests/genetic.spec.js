@@ -115,14 +115,11 @@ describe("A Genetic Code", function() {
     });
 
     it("has a selection phase", function(done) {
-        var mates = [];
+        geneticCode.individuals.push(new Individual(2));
+        geneticCode.individuals.push(new Individual(2));
 
-        geneticCode.selection(function(couple) {
-            expect(couple.length).to.equal(2);
-
-            mates.push(couple);
-        }, function() {
-            expect(_.difference(_.flatten(mates), geneticCode.chromosomes).length).to.equal(0);
+        geneticCode.selection(function(matingPool) {
+            expect(matingPool.length).to.equal(2);
 
             done();
         });

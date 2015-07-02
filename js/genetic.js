@@ -28,6 +28,9 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
     var individuals = [];
     var ideal;
+    var matingPool;
+
+    var MATING_RATIO = 0.50;
 
     for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
         individuals[individualIndex] = new Individual(numberOfChromosomes);
@@ -77,32 +80,33 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         }
     };
 
-    this.selection = function(callback, finished) {
-        var singleChromosomeIndices = _.range(0, this.chromosomes.length);
-        while (singleChromosomeIndices.length > 0) {
-            mateCouple(this.chromosomes, callback);
-        }
+    this.selection = function(callback) {
+        this.computeFitness();
 
-        finished();
+        matingPool = [];
 
-        function mateCouple(chromosomes, callback) {
-            var couple = [];
+        var individualIndex = 0;
+        while(matingPool.length < individuals.length * MATING_RATIO) {
 
-            while (couple.length < 2) {
-                var randomIndex = _.random(0, chromosomes.length - 1);
+            var individual = individuals[individualIndex];
+            var randomIndividual = _.sample(individuals);
 
-                if (isMateable()) {
-                    couple.push(chromosomes[randomIndex]);
-                    singleChromosomeIndices.splice(singleChromosomeIndices.indexOf(randomIndex), 1);
+            if (randomIndividual !== individual) {
+                var winner = _.max([ individual, randomIndividual ], function(mate) {
+                    return mate.fitness;
+                });
+
+                if (!_.contains(matingPool, winner)) {
+                    matingPool.push(winner);
                 }
             }
 
-            callback(couple);
-
-            function isMateable() {
-                return _.contains(singleChromosomeIndices, randomIndex);
+            if (++individualIndex >= individuals.length) {
+                individualIndex = 0;
             }
         }
+
+        callback(matingPool);
     };
 
     this.crossover = function(chromosomes, offsets, callback) {
@@ -145,4 +149,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
     this.individuals = individuals;
     this.ideal = ideal;
+
+    this.MATING_RATIO = MATING_RATIO;
 };
