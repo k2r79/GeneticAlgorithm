@@ -5,24 +5,51 @@
     <title>Genetic Algorithm</title>
 
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="node_modules/underscore/underscore-min.js"></script>
     <script src="js/genetic.js"></script>
+    <script src="js/image-lib.js"></script>
 </head>
 <body>
-    <canvas id="canvas" width="800" height="400"></canvas>
+    <canvas id="canvas" width="300" height="150"></canvas>
 
     <script>
+        var canvas = $("#canvas")[0];
+        var context = canvas.getContext("2d");
+        var idealImage = new Image();
+
+        var geneticCode = new GeneticCode(canvas.width / 2 * canvas.height);
+
         $(document).ready(function() {
-            var canvas = $("#canvas")[0];
-            var context = canvas.getContext("2d");
-            var idealImage = new Image();
-
-            var geneticCode = new GeneticCode(canvas.width * canvas.height);
-
             drawIdealImage();
+            setIdealImage();
+
+            drawGeneticImage();
 
             function drawIdealImage() {
                 idealImage.onload = function () {
-                    context.drawImage(idealImage, 0, 0);
+                    context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+                };
+
+                idealImage.src = "images/minion.jpg";
+            }
+
+            function setIdealImage() {
+                var binaryImageData = ImageLib.imageDataToBinary(context.getImageData(0, 0, canvas.width / 2, canvas.height).data);
+
+                _.each(geneticCode.ideal, function(chromosome, chromosomeIndex) {
+                    var binaryImageDataIndex = chromosomeIndex * 3;
+
+                    chromosome.genes = [
+                        binaryImageData[binaryImageDataIndex],
+                        binaryImageData[binaryImageDataIndex + 1],
+                        binaryImageData[binaryImageDataIndex + 2]
+                    ];
+                });
+            }
+
+            function drawIdealImage() {
+                idealImage.onload = function () {
+                    context.drawImage(idealImage, canvas.width / 2, 0, canvas.width, canvas.height);
                 };
 
                 idealImage.src = "images/minion.jpg";

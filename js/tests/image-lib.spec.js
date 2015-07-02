@@ -35,4 +35,16 @@ describe("The Image Lib", function() {
 
         done();
     });
+
+    it("can convert an binary image data to RGBA", function(done) {
+        var rgbaImageData = [ 135, 22, 100, 255, 143, 49, 25, 255, 250, 89, 199, 255];
+        var binaryImageData = ImageLib.imageDataToBinary(rgbaImageData);
+
+        var convertedBinaryImageData = ImageLib.imageDataToRGBA(binaryImageData);
+
+        expect(convertedBinaryImageData.length).to.equal(rgbaImageData.length);
+        expect(convertedBinaryImageData).to.deep.equal(rgbaImageData);
+
+        done();
+    });
 });

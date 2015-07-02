@@ -35,3 +35,23 @@ ImageLib.imageDataToBinary = function(imageData) {
 
     return binaryData;
 };
+
+ImageLib.imageDataToRGBA = function(imageData) {
+    var rgbaData = [];
+
+    imageData = _.map(imageData, function(pixel) {
+        return _.map(pixel, function(component) {
+            return component.toString();
+        }).join("");
+    });
+
+    for (var pixelIndex = 0; pixelIndex < imageData.length; pixelIndex += 3) {
+        rgbaData.push(parseInt(imageData[pixelIndex], 2));
+        rgbaData.push(parseInt(imageData[pixelIndex + 1], 2));
+        rgbaData.push(parseInt(imageData[pixelIndex + 2], 2));
+
+        rgbaData.push(255);
+    }
+
+    return rgbaData;
+};
