@@ -25,6 +25,8 @@
 
             drawGeneticImage();
 
+            geneticCode.live(drawGeneticImage);
+
             function drawIdealImage() {
                 idealImage.onload = function () {
                     context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
@@ -47,12 +49,16 @@
                 });
             }
 
-            function drawIdealImage() {
-                idealImage.onload = function () {
-                    context.drawImage(idealImage, canvas.width / 2, 0, canvas.width, canvas.height);
-                };
+            function drawGeneticImage() {
+                var geneticImageData = context.createImageData(canvas.width / 2, canvas.height);
 
-                idealImage.src = "images/minion.jpg";
+                _.each(geneticCode.chromosomes, function(chromosome, chromosomeIndex) {
+                    _.each(ImageLib.imageDataToRGBA(chromosome.genes), function(pixel, pixelIndex) {
+                        geneticImageData.data[chromosomeIndex * 4 + pixelIndex] = pixel;
+                    });
+                });
+
+                context.putImageData(geneticImageData, canvas.width / 2, 0);
             }
         });
     </script>

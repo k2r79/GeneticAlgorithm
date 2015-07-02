@@ -1,7 +1,6 @@
 var Chromosome = function() {
     this.genes = [];
     this.fitness = null;
-    this.matingRange = [];
 
     for (var geneIndex = 0; geneIndex < 3; geneIndex++) {
         this.genes[geneIndex] = [];
@@ -13,6 +12,8 @@ var Chromosome = function() {
 };
 
 var GeneticCode = function(numberOfChromosomes) {
+    var self = this;
+
     this.chromosomes = [];
     this.ideal = [];
 
@@ -29,10 +30,10 @@ var GeneticCode = function(numberOfChromosomes) {
                 [ _.random(0, 8), _.random(0, 8) ]
             ];
 
-            this.crossover(couple, offsets, function(chromosomes) {
+            self.crossover(couple, offsets, function(chromosomes) {
                 _.each(chromosomes, function(chromosome, chromosomeIndex) {
-                    this.mutate(chromosome, callback);
-                });
+                    self.mutate(chromosome, callback);
+                }, this);
             });
         });
     };
@@ -51,24 +52,9 @@ var GeneticCode = function(numberOfChromosomes) {
         }, this.ideal);
     };
 
-    this.generateMatingWheel = function() {
-        this.computeFitness();
-
-        var totalFitness = _.reduce(this.chromosomes, function(memo, chromosome, index) {
-            return memo + chromosome.fitness;
-        }, 0, this);
-
-        _.each(this.chromosomes, function(chromosome, chromosomeIndex) {
-            chromosome.matingRange[0] = chromosomeIndex > 0 ? this.chromosomes[chromosomeIndex - 1].matingRange[1] : 0;
-            chromosome.matingRange[1] = chromosome.matingRange[0] + Math.floor((chromosome.fitness / totalFitness) * 1000) / 1000;
-        }, this);
-    };
-
     this.selection = function(callback, finished) {
-        this.generateMatingWheel();
-
-        var matedChromosomeIndices = [];
-        while (matedChromosomeIndices.length != this.chromosomes.length) {
+        var singleChromosomeIndices = _.range(0, this.chromosomes.length);
+        while (singleChromosomeIndices.length > 0) {
             mateCouple(this.chromosomes, callback);
         }
 
@@ -77,28 +63,19 @@ var GeneticCode = function(numberOfChromosomes) {
         function mateCouple(chromosomes, callback) {
             var couple = [];
 
-            var chromosomeIndex = 0;
             while (couple.length < 2) {
-                var randomValue = Math.random();
-
-                if (chromosomeIndex >= chromosomes.length) {
-                    chromosomeIndex = 0;
-                }
+                var randomIndex = _.random(0, chromosomes.length - 1);
 
                 if (isMateable()) {
-                    couple.push(chromosomes[chromosomeIndex]);
-                    matedChromosomeIndices.push(chromosomeIndex);
+                    couple.push(chromosomes[randomIndex]);
+                    singleChromosomeIndices.splice(singleChromosomeIndices.indexOf(randomIndex), 1);
                 }
-
-                chromosomeIndex++;
             }
 
             callback(couple);
 
             function isMateable() {
-                return randomValue >= chromosomes[chromosomeIndex].matingRange[0]
-                    && randomValue < chromosomes[chromosomeIndex].matingRange[1]
-                    && !_.contains(matedChromosomeIndices, chromosomeIndex);
+                return _.contains(singleChromosomeIndices, randomIndex);
             }
         }
     };
