@@ -155,6 +155,8 @@ describe("A Genetic Code", function() {
     });
 
     it("has a fittest individual", function(done) {
+        geneticCode.computeFitness();
+
         expect(geneticCode.fittestIndividual()).to.equal(geneticCode.individuals[0]);
 
         done();

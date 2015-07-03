@@ -22,7 +22,6 @@
 
         $(document).ready(function() {
             drawIdealImage();
-            setIdealImage();
 
             drawGeneticImage();
 
@@ -33,6 +32,8 @@
             function drawIdealImage() {
                 idealImage.onload = function () {
                     context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+
+                    setIdealImage();
                 };
 
                 idealImage.src = "images/minion.jpg";

@@ -55,18 +55,21 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         _.each(individuals, function(individual, individualIndex) {
 
             var differences = computeIndividualDifferences(individual, ideal);
+            console.log(differences);
 
             individual.fitness = 1 - (differences / (individual.chromosomes.length * individual.chromosomes[0].genes.length * individual.chromosomes[0].genes[0].length));
         });
 
         function computeIndividualDifferences(individual, idealIndividual) {
             return _.reduce(individual.chromosomes, function(memo, chromosome, index) {
+                //console.log(computeChromosomeDifferences(chromosome, idealIndividual.chromosomes[index]));
                 return memo + computeChromosomeDifferences(chromosome, idealIndividual.chromosomes[index]);
             }, 0);
         }
 
         function computeChromosomeDifferences(chromosome, idealChromosome) {
             return _.reduce(chromosome.genes, function(memo, gene, index) {
+                //console.log(computeGeneDifference(gene, idealChromosome.genes[index]));
                 return memo + computeGeneDifference(gene, idealChromosome.genes[index]);
             }, 0);
         }
@@ -157,8 +160,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     //};
 
     this.fittestIndividual = function() {
-        this.computeFitness();
-
         return _.max(individuals, function(individual) {
             return individual.fitness;
         });
