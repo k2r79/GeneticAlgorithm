@@ -30,7 +30,7 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     var ideal;
     var matingPool;
 
-    var MATING_RATIO = 0.50;
+    var MATING_RATIO = 0.10;
 
     for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
         individuals[individualIndex] = new Individual(numberOfChromosomes);
@@ -45,9 +45,13 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
                 [ _.random(0, 3), _.random(4, 8) ]
             ];
 
-            self.crossover([ _.sample(matingPool), _.sample(matingPool) ], offsets);
-
-            callback();
+            self.crossover([ _.sample(matingPool), _.sample(matingPool) ], offsets, function() {
+                _.each(individuals, function(individual) {
+                    self.mutate(individual, function() {
+                        callback();
+                    });
+                });
+            });
         });
     };
 
@@ -55,7 +59,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         _.each(individuals, function(individual) {
 
             var differences = computeIndividualDifferences(individual, ideal);
-            console.log(differences);
 
             individual.fitness = 1 - (differences / (individual.chromosomes.length * individual.chromosomes[0].genes.length * individual.chromosomes[0].genes[0].length));
         });
@@ -108,10 +111,12 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         callback(matingPool);
     };
 
-    this.crossover = function(individuals, offsets) {
+    this.crossover = function(individuals, offsets, callback) {
         _.each(individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
             crossoverChromosomes([ chromosome, individuals[1].chromosomes[chromosomeIndex] ]);
         });
+
+        callback();
 
         function crossoverChromosomes(chromosomes) {
             var genes = [
@@ -140,21 +145,21 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         }
     };
 
-    //this.mutate = function(individual) {
-    //    _.each(individual.chromosomes, function(chromosome, chromosomeIndex) {
-    //        mutateChromosome(chromosome);
-    //    });
-    //
-    //    function mutateChromosome(chromosome) {
-    //        _.each(chromosome.genes, function(gene, geneIndex) {
-    //            _.each(gene, function(component, componentIndex) {
-    //                var index = _.random(0, 7);
-    //
-    //                gene[index] = component == 1 ? 0 : 1;
-    //            });
-    //        });
-    //    }
-    //};
+    this.mutate = function(individual, callback) {
+        _.each(individual.chromosomes, function(chromosome) {
+            mutateChromosome(chromosome);
+        });
+
+        callback();
+
+        function mutateChromosome(chromosome) {
+            _.each(chromosome.genes, function(gene, geneIndex) {
+                var randomComponentIndex = _.random(0, chromosome.genes.length - 1);
+
+                gene[randomComponentIndex] = gene[randomComponentIndex] == 1 ? 0 : 1;
+            });
+        }
+    };
 
     this.fittestIndividual = function() {
         return _.max(individuals, function(individual) {
@@ -164,4 +169,8 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
     this.individuals = individuals;
     this.ideal = ideal;
+
+    this.setMatingRatio = function(ratio) {
+        MATING_RATIO = ratio;
+    };
 };

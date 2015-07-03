@@ -10,7 +10,7 @@
     <script src="js/image-lib.js"></script>
 </head>
 <body>
-    <canvas id="canvas" width="400" height="200"></canvas>
+    <canvas id="canvas" width="100" height="50"></canvas>
     <button id="live">Make it live !</button>
 
     <script>
@@ -19,6 +19,7 @@
         var idealImage = new Image();
 
         var geneticCode = new GeneticCode(4, canvas.width / 2 * canvas.height);
+        var generation = 0;
 
         $(document).ready(function() {
             drawIdealImage();
@@ -26,7 +27,13 @@
             drawGeneticImage();
 
             $('#live').click(function() {
-                geneticCode.live(drawGeneticImage);
+                for (var i = 0; i < 2000; i++) {
+                    geneticCode.live(drawGeneticImage);
+
+                    generation++;
+
+                    console.log(generation);
+                }
             });
 
             function drawIdealImage() {

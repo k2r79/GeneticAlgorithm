@@ -115,6 +115,8 @@ describe("A Genetic Code", function() {
     });
 
     it("has a selection phase", function(done) {
+        geneticCode.setMatingRatio(0.50);
+
         geneticCode.individuals.push(new Individual(2));
         geneticCode.individuals.push(new Individual(2));
 
@@ -132,26 +134,26 @@ describe("A Genetic Code", function() {
                 [ 3, 6 ],
                 [ 1, 4 ],
                 [ 4, 8 ]
-            ]
+            ], function() {
+                expect(geneticCode.individuals[0].chromosomes[0].genes[0]).to.deep.equal([ 1, 0, 0, 0, 1, 0, 0, 1 ]);
+                expect(geneticCode.individuals[0].chromosomes[0].genes[1]).to.deep.equal([ 0, 0, 0, 0, 1, 0, 0, 1 ]);
+                expect(geneticCode.individuals[0].chromosomes[0].genes[2]).to.deep.equal([ 1, 1, 0, 1, 0, 0, 0, 1 ]);
+
+                expect(geneticCode.individuals[0].chromosomes[1].genes[0]).to.deep.equal([ 1, 1, 1, 1, 1, 0, 0, 1 ]);
+                expect(geneticCode.individuals[0].chromosomes[1].genes[1]).to.deep.equal([ 0, 1, 0, 1, 0, 1, 1, 0 ]);
+                expect(geneticCode.individuals[0].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 0, 1, 0, 1 ]);
+
+                expect(geneticCode.individuals[1].chromosomes[0].genes[0]).to.deep.equal([ 0, 0, 1, 0, 1, 0, 1, 1 ]);
+                expect(geneticCode.individuals[1].chromosomes[0].genes[1]).to.deep.equal([ 1, 0, 0, 1, 1, 0, 1, 0 ]);
+                expect(geneticCode.individuals[1].chromosomes[0].genes[2]).to.deep.equal([ 1, 0, 1, 1, 1, 1, 0, 0 ]);
+
+                expect(geneticCode.individuals[1].chromosomes[1].genes[0]).to.deep.equal([ 1, 0, 1, 1, 0, 0, 1, 0 ]);
+                expect(geneticCode.individuals[1].chromosomes[1].genes[1]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 0, 0 ]);
+                expect(geneticCode.individuals[1].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 1, 0 ]);
+
+                done();
+            }
         );
-
-        expect(geneticCode.individuals[0].chromosomes[0].genes[0]).to.deep.equal([ 1, 0, 0, 0, 1, 0, 0, 1 ]);
-        expect(geneticCode.individuals[0].chromosomes[0].genes[1]).to.deep.equal([ 0, 0, 0, 0, 1, 0, 0, 1 ]);
-        expect(geneticCode.individuals[0].chromosomes[0].genes[2]).to.deep.equal([ 1, 1, 0, 1, 0, 0, 0, 1 ]);
-
-        expect(geneticCode.individuals[0].chromosomes[1].genes[0]).to.deep.equal([ 1, 1, 1, 1, 1, 0, 0, 1 ]);
-        expect(geneticCode.individuals[0].chromosomes[1].genes[1]).to.deep.equal([ 0, 1, 0, 1, 0, 1, 1, 0 ]);
-        expect(geneticCode.individuals[0].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 0, 1, 0, 1 ]);
-
-        expect(geneticCode.individuals[1].chromosomes[0].genes[0]).to.deep.equal([ 0, 0, 1, 0, 1, 0, 1, 1 ]);
-        expect(geneticCode.individuals[1].chromosomes[0].genes[1]).to.deep.equal([ 1, 0, 0, 1, 1, 0, 1, 0 ]);
-        expect(geneticCode.individuals[1].chromosomes[0].genes[2]).to.deep.equal([ 1, 0, 1, 1, 1, 1, 0, 0 ]);
-
-        expect(geneticCode.individuals[1].chromosomes[1].genes[0]).to.deep.equal([ 1, 0, 1, 1, 0, 0, 1, 0 ]);
-        expect(geneticCode.individuals[1].chromosomes[1].genes[1]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 0, 0 ]);
-        expect(geneticCode.individuals[1].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 1, 0 ]);
-
-        done();
     });
 
     it("has a fittest individual", function(done) {
@@ -162,22 +164,22 @@ describe("A Genetic Code", function() {
         done();
     });
 
-    //it("has a mutation phase", function(done) {
-    //    var geneInitialStates = [
-    //        _.clone(geneticCode.individuals[0].chromosomes[0].genes),
-    //        _.clone(geneticCode.individuals[0].chromosomes[1].genes)
-    //    ];
-    //
-    //    geneticCode.mutate(geneticCode.individuals[0]);
-    //
-    //    _.each(geneticCode.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
-    //        _.each(chromosome.genes, function(gene, geneIndex) {
-    //            expect(gene).to.not.deep.equal(geneInitialStates[chromosomeIndex][geneIndex]);
-    //        });
-    //    });
-    //
-    //    done();
-    //});
+    it("has a mutation phase", function(done) {
+        var geneInitialStates = [
+            _.map(geneticCode.individuals[0].chromosomes[0].genes, _.clone),
+            _.map(geneticCode.individuals[0].chromosomes[1].genes, _.clone)
+        ];
+
+        geneticCode.mutate(geneticCode.individuals[0], function() {
+            _.each(geneticCode.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
+                _.each(chromosome.genes, function(gene, geneIndex) {
+                    expect(gene).to.not.deep.equal(geneInitialStates[chromosomeIndex][geneIndex]);
+                });
+            });
+
+            done();
+        });
+    });
 
     //it("can live !", function(done) {
     //    geneticCode.selection = sinon.spy();
