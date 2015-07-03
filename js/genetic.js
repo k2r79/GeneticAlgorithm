@@ -1,6 +1,6 @@
 var Individual = function(numberOfChromosomes) {
     var chromosomes = [];
-    var fitness;
+    var fitness = null;
 
     for (var chromosomeIndex = 0; chromosomeIndex < numberOfChromosomes; chromosomeIndex++) {
         chromosomes.push(new Chromosome());
@@ -40,9 +40,9 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     this.live = function(callback) {
         this.selection(function(matingPool) {
             var offsets = [
-                [ _.random(0, 8), _.random(0, 8) ],
-                [ _.random(0, 8), _.random(0, 8) ],
-                [ _.random(0, 8), _.random(0, 8) ]
+                [ _.random(0, 3), _.random(4, 8) ],
+                [ _.random(0, 3), _.random(4, 8) ],
+                [ _.random(0, 3), _.random(4, 8) ]
             ];
 
             self.crossover([ _.sample(matingPool), _.sample(matingPool) ], offsets);
@@ -52,7 +52,7 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     };
 
     this.computeFitness = function() {
-        _.each(individuals, function(individual, individualIndex) {
+        _.each(individuals, function(individual) {
 
             var differences = computeIndividualDifferences(individual, ideal);
             console.log(differences);
@@ -62,14 +62,12 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
         function computeIndividualDifferences(individual, idealIndividual) {
             return _.reduce(individual.chromosomes, function(memo, chromosome, index) {
-                //console.log(computeChromosomeDifferences(chromosome, idealIndividual.chromosomes[index]));
                 return memo + computeChromosomeDifferences(chromosome, idealIndividual.chromosomes[index]);
             }, 0);
         }
 
         function computeChromosomeDifferences(chromosome, idealChromosome) {
             return _.reduce(chromosome.genes, function(memo, gene, index) {
-                //console.log(computeGeneDifference(gene, idealChromosome.genes[index]));
                 return memo + computeGeneDifference(gene, idealChromosome.genes[index]);
             }, 0);
         }
@@ -129,7 +127,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
                 ]
             ];
 
-
             chromosomes[0].genes = genes[0];
             chromosomes[1].genes = genes[1];
         }
@@ -167,6 +164,4 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
     this.individuals = individuals;
     this.ideal = ideal;
-
-    this.MATING_RATIO = MATING_RATIO;
 };

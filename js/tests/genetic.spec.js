@@ -98,7 +98,7 @@ describe("A Genetic Code", function() {
     });
 
     it("has an ideal", function(done) {
-        _.each(geneticCode.individuals, function(individual, individualIndex) {
+        _.each(geneticCode.individuals, function(individual) {
             expect(geneticCode.ideal.chromosomes.length).to.equal(individual.chromosomes.length);
         });
 
