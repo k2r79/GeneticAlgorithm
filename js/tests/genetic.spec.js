@@ -38,12 +38,38 @@ describe("An Individual", function() {
     });
 });
 
-describe("A Genetic Code", function() {
+describe("A Population", function() {
 
-    var geneticCode;
+    var population;
 
     beforeEach(function(done) {
-        geneticCode = new GeneticCode(2, 2);
+        population = new Population(2);
+
+        done();
+    });
+
+    it("has Individuals", function(done) {
+        expect(population.individuals.length).to.equal(2);
+
+        done();
+    });
+
+    it("has a fittest Individual", function(done) {
+        population.individuals[0].fitness = 0.6875;
+        population.individuals[1].fitness = 0.45833333333333337;
+
+        expect(population.fittestIndividual()).to.equal(population.individuals[0]);
+
+        done();
+    });
+});
+
+describe("A Genetic Algorithm", function() {
+
+    var geneticAlgorithm;
+
+    beforeEach(function(done) {
+        geneticAlgorithm = new GeneticAlgorithm(2, 2);
 
         setChromosomes();
         setIdeal();
@@ -52,25 +78,25 @@ describe("A Genetic Code", function() {
     });
 
     function setChromosomes() {
-        geneticCode.individuals[0].chromosomes[0].genes = [
+        geneticAlgorithm.population.individuals[0].chromosomes[0].genes = [
             [ 0, 0, 1, 0, 1, 0, 1, 1],
             [ 1, 0, 0, 0, 1, 0, 1, 0],
             [ 1, 0, 1, 1, 0, 0, 0, 1]
         ];
 
-        geneticCode.individuals[0].chromosomes[1].genes = [
+        geneticAlgorithm.population.individuals[0].chromosomes[1].genes = [
             [ 1, 0, 1, 1, 1, 0, 1, 0],
             [ 0, 1, 0, 1, 1, 0, 0, 0],
             [ 0, 0, 1, 1, 0, 1, 0, 1]
         ];
 
-        geneticCode.individuals[1].chromosomes[0].genes = [
+        geneticAlgorithm.population.individuals[1].chromosomes[0].genes = [
             [ 1, 0, 0, 0, 1, 0, 0, 1],
             [ 0, 0, 0, 1, 1, 0, 0, 1],
             [ 1, 1, 0, 1, 1, 1, 0, 0]
         ];
 
-        geneticCode.individuals[1].chromosomes[1].genes = [
+        geneticAlgorithm.population.individuals[1].chromosomes[1].genes = [
             [ 1, 1, 1, 1, 0, 0, 0, 1],
             [ 0, 0, 1, 1, 0, 1, 1, 0],
             [ 0, 0, 1, 1, 1, 0, 1, 0]
@@ -78,108 +104,86 @@ describe("A Genetic Code", function() {
     }
 
     function setIdeal() {
-        geneticCode.ideal.chromosomes[0].genes = [
+        geneticAlgorithm.ideal.chromosomes[0].genes = [
             [ 1, 1, 1, 0, 1, 1, 0, 1],
             [ 0, 0, 0, 1, 1, 0, 1, 0],
             [ 0, 0, 1, 1, 0, 0, 1, 1]
         ];
 
-        geneticCode.ideal.chromosomes[1].genes = [
+        geneticAlgorithm.ideal.chromosomes[1].genes = [
             [ 1, 0, 1, 0, 1, 0, 0, 0],
             [ 0, 0, 0, 0, 1, 0, 0, 0],
             [ 1, 0, 1, 0, 0, 1, 1, 1]
         ];
     }
 
-    it("has multiple individuals", function(done) {
-        expect(geneticCode.individuals.length).to.equal(2);
+    it("has a population", function(done) {
+        expect(geneticAlgorithm.population.individuals.length).to.equal(2);
 
         done();
     });
 
     it("has an ideal", function(done) {
-        _.each(geneticCode.individuals, function(individual) {
-            expect(geneticCode.ideal.chromosomes.length).to.equal(individual.chromosomes.length);
+        _.each(geneticAlgorithm.population.individuals, function(individual) {
+            expect(geneticAlgorithm.ideal.chromosomes.length).to.equal(individual.chromosomes.length);
         });
-
-        done();
-    });
-
-    it("has a fitness function", function(done) {
-        geneticCode.computeFitness();
-
-        expect(geneticCode.individuals[0].fitness).to.equal(0.6875);
-        expect(geneticCode.individuals[1].fitness).to.equal(0.45833333333333337);
 
         done();
     });
 
     it("has a selection phase", function(done) {
-        geneticCode.MATING_RATIO = 0.50;
-        geneticCode.TOURNAMENT_SIZE = 2;
+        geneticAlgorithm.TOURNAMENT_SIZE = 4;
 
-        geneticCode.individuals.push(new Individual(2));
-        geneticCode.individuals.push(new Individual(2));
+        geneticAlgorithm.population.individuals.push(new Individual(2));
+        geneticAlgorithm.population.individuals[2].fitness = 0.80;
 
-        geneticCode.selection(function(matingPool) {
-            expect(matingPool.length).to.equal(Math.floor(geneticCode.individuals.length * geneticCode.MATING_RATIO));
+        geneticAlgorithm.population.individuals.push(new Individual(2));
+        geneticAlgorithm.population.individuals[3].fitness = 0.10;
+
+        expect(geneticAlgorithm.selection().fitness).to.equal(geneticAlgorithm.population.individuals[2].fitness);
+
+        done();
+    });
+
+    it("has a crossover phase", function(done) {
+        geneticAlgorithm.crossover(function(offspring, parents) {
+            _.each(parents, function(parent, parentIndex) {
+                _.each(offspring.chromosomes, function(offspringChromosome, offspringChromosomeIndex) {
+                    var differences = _.reduce(offspringChromosome.genes, function(memo, gene, geneIndex) {
+                        return memo + differences(gene, parent.chromosomes[offspringChromosomeIndex].genes[geneIndex]);
+                    }, 0);
+
+                    expect(differences > 0).to.equal(true);
+
+                    function differences(offspringGene, parentGene) {
+                        return _.reduce(offspringGene, function(memo, offspringComponent, offspringComponentIndex) {
+                            return memo + ((offspringComponent != parentGene[offspringComponentIndex]) ? 1 : 0);
+                        }, 0);
+                    }
+                });
+            });
 
             done();
         });
     });
 
-    it("has a crossover phase", function(done) {
-        geneticCode.crossover(
-            [ geneticCode.individuals[0], geneticCode.individuals[1] ],
-            [
-                [ 3, 6 ],
-                [ 1, 4 ],
-                [ 4, 8 ]
-            ], function() {
-                expect(geneticCode.individuals[0].chromosomes[0].genes[0]).to.deep.equal([ 1, 0, 0, 0, 1, 0, 0, 1 ]);
-                expect(geneticCode.individuals[0].chromosomes[0].genes[1]).to.deep.equal([ 0, 0, 0, 0, 1, 0, 0, 1 ]);
-                expect(geneticCode.individuals[0].chromosomes[0].genes[2]).to.deep.equal([ 1, 1, 0, 1, 0, 0, 0, 1 ]);
-
-                expect(geneticCode.individuals[0].chromosomes[1].genes[0]).to.deep.equal([ 1, 1, 1, 1, 1, 0, 0, 1 ]);
-                expect(geneticCode.individuals[0].chromosomes[1].genes[1]).to.deep.equal([ 0, 1, 0, 1, 0, 1, 1, 0 ]);
-                expect(geneticCode.individuals[0].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 0, 1, 0, 1 ]);
-
-                expect(geneticCode.individuals[1].chromosomes[0].genes[0]).to.deep.equal([ 0, 0, 1, 0, 1, 0, 1, 1 ]);
-                expect(geneticCode.individuals[1].chromosomes[0].genes[1]).to.deep.equal([ 1, 0, 0, 1, 1, 0, 1, 0 ]);
-                expect(geneticCode.individuals[1].chromosomes[0].genes[2]).to.deep.equal([ 1, 0, 1, 1, 1, 1, 0, 0 ]);
-
-                expect(geneticCode.individuals[1].chromosomes[1].genes[0]).to.deep.equal([ 1, 0, 1, 1, 0, 0, 1, 0 ]);
-                expect(geneticCode.individuals[1].chromosomes[1].genes[1]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 0, 0 ]);
-                expect(geneticCode.individuals[1].chromosomes[1].genes[2]).to.deep.equal([ 0, 0, 1, 1, 1, 0, 1, 0 ]);
-
-                done();
-            }
-        );
-    });
-
-    it("has a fittest individual", function(done) {
-        geneticCode.computeFitness();
-
-        expect(geneticCode.fittestIndividual()).to.equal(geneticCode.individuals[0]);
-
-        done();
-    });
-
     it("has a mutation phase", function(done) {
+        geneticAlgorithm.MUTATION_AMOUNT = 3;
+
         var geneInitialStates = [
-            _.map(geneticCode.individuals[0].chromosomes[0].genes, _.clone),
-            _.map(geneticCode.individuals[0].chromosomes[1].genes, _.clone)
+            _.map(geneticAlgorithm.population.individuals[0].chromosomes[0].genes, _.clone),
+            _.map(geneticAlgorithm.population.individuals[0].chromosomes[1].genes, _.clone)
         ];
 
-        geneticCode.mutate(geneticCode.individuals[0], function() {
-            _.each(geneticCode.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
+        geneticAlgorithm.mutate(geneticAlgorithm.population.individuals[0], function() {
+            _.each(geneticAlgorithm.population.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
 
                 _.each(chromosome.genes, function(gene, geneIndex) {
                     var differences = _.reduce(gene, function(memo, value, index) {
                         return memo + ((value == geneInitialStates[chromosomeIndex][geneIndex][index]) ? 0 : 1);
                     }, 0);
 
-                    expect(differences).to.equal(3);
+                    expect(differences).to.equal(geneticAlgorithm.MUTATION_AMOUNT);
                 });
             });
 
@@ -188,14 +192,14 @@ describe("A Genetic Code", function() {
     });
 
     //it("can live !", function(done) {
-    //    geneticCode.selection = sinon.spy();
-    //    geneticCode.crossover = sinon.spy();
-    //    geneticCode.mutate = sinon.spy();
+    //    geneticAlgorithm.selection = sinon.spy();
+    //    geneticAlgorithm.crossover = sinon.spy();
+    //    geneticAlgorithm.mutate = sinon.spy();
     //
-    //    geneticCode.live(function() {
-    //        expect(geneticCode.selection.called).to.equal(true);
-    //        expect(geneticCode.crossover.called).to.equal(true);
-    //        expect(geneticCode.mutate.called).to.equal(true);
+    //    geneticAlgorithm.live(function() {
+    //        expect(geneticAlgorithm.selection.called).to.equal(true);
+    //        expect(geneticAlgorithm.crossover.called).to.equal(true);
+    //        expect(geneticAlgorithm.mutate.called).to.equal(true);
     //
     //        done();
     //    });

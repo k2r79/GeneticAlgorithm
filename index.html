@@ -32,7 +32,7 @@
         var context = canvas.getContext("2d");
         var idealImage = new Image();
 
-        var geneticCode = new GeneticCode(10, canvas.width / 2 * canvas.height);
+        var geneticAlgorithm = new GeneticAlgorithm(10, canvas.width / 2 * canvas.height);
         var generation = 0;
 
         var highestFitnesses = [];
@@ -45,15 +45,15 @@
             setupHighestFitnessChart();
 
             $('#live').click(function() {
-                var max = 10000;
+                var max = 100;
                 for (var i = 0; i < max; i++) {
-                    geneticCode.live(function() {});
+                    geneticAlgorithm.live(function() {});
 
                     generation++;
                     console.log(generation);
 
-                    if (i % (max / 40) == 0) {
-                        highestFitnesses.push(geneticCode.fittestIndividual().fitness);
+                    if (i % (max / 30) == 0) {
+                        highestFitnesses.push(geneticAlgorithm.population.fittestIndividual().fitness);
                     }
                 }
 
@@ -63,7 +63,7 @@
                 updateHighestFitnessChart();
 
                 function updateFitnessChart() {
-                    _.each(geneticCode.individuals, function(individual, individualIndex) {
+                    _.each(geneticAlgorithm.individuals, function(individual, individualIndex) {
                         fitnessChart.datasets[0].bars[individualIndex].value = individual.fitness;
                     });
 
@@ -80,11 +80,11 @@
             });
 
             function setupFitnessChart() {
-                geneticCode.computeFitness();
+                geneticAlgorithm.computeFitness();
 
-                var range = _.range(0, geneticCode.individuals.length);
+                var range = _.range(0, geneticAlgorithm.population.individuals.length);
 
-                var startFitnesses = _.map(geneticCode.individuals, function(individual) {
+                var startFitnesses = _.map(geneticAlgorithm.individuals, function(individual) {
                     return individual.fitness;
                 });
 
@@ -123,7 +123,7 @@
                             strokeColor: "rgba(220,220,220,0.8)",
                             highlightFill: "rgba(220,220,220,0.75)",
                             highlightStroke: "rgba(220,220,220,1)",
-                            data: [ geneticCode.fittestIndividual().fitness ]
+                            data: [ geneticAlgorithm.population.fittestIndividual().fitness ]
                         }
                     ]
                 };
@@ -151,7 +151,7 @@
             function setIdealImage() {
                 var binaryImageData = ImageLib.imageDataToBinary(context.getImageData(0, 0, canvas.width / 2, canvas.height).data);
 
-                _.each(geneticCode.ideal.chromosomes, function(chromosome, chromosomeIndex) {
+                _.each(geneticAlgorithm.ideal.chromosomes, function(chromosome, chromosomeIndex) {
                     var binaryImageDataIndex = chromosomeIndex * 3;
 
                     chromosome.genes = [
@@ -167,7 +167,7 @@
 
                 var geneticImageData = context.createImageData(canvas.width / 2, canvas.height);
 
-                _.each(geneticCode.fittestIndividual().chromosomes, function(chromosome, chromosomeIndex) {
+                _.each(geneticAlgorithm.population.fittestIndividual().chromosomes, function(chromosome, chromosomeIndex) {
                     _.each(ImageLib.imageDataToRGBA(chromosome.genes), function(pixel, pixelIndex) {
                         geneticImageData.data[chromosomeIndex * 4 + pixelIndex] = pixel;
                     });

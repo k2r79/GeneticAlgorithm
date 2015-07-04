@@ -1,3 +1,19 @@
+var Chromosome = function() {
+    var genes = [];
+    var fitness = null;
+
+    for (var geneIndex = 0; geneIndex < 3; geneIndex++) {
+        genes[geneIndex] = [];
+
+        for (var bitIndex = 0; bitIndex < 8; bitIndex++) {
+            genes[geneIndex][bitIndex] = Math.round(Math.random());
+        }
+    }
+
+    this.genes = genes;
+    this.fitness = fitness;
+};
+
 var Individual = function(numberOfChromosomes) {
     var chromosomes = [];
     var fitness = null;
@@ -10,56 +26,50 @@ var Individual = function(numberOfChromosomes) {
     this.fitness = fitness;
 };
 
-var Chromosome = function() {
-    this.genes = [];
-    this.fitness = null;
-
-    for (var geneIndex = 0; geneIndex < 3; geneIndex++) {
-        this.genes[geneIndex] = [];
-
-        for (var bitIndex = 0; bitIndex < 8; bitIndex++) {
-            this.genes[geneIndex][bitIndex] = Math.round(Math.random());
-        }
-    }
-};
-
-var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
-    var self = this;
-
+var Population = function(numberOfIndividuals, numberOfChromosomes) {
     var individuals = [];
-    var ideal;
-    var matingPool;
-
-    this.MATING_RATIO = 0.60;
-    this.TOURNAMENT_SIZE = numberOfIndividuals / 5;
 
     for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
-        individuals[individualIndex] = new Individual(numberOfChromosomes);
-        ideal = new Individual(numberOfChromosomes);
+        individuals.push(new Individual(numberOfChromosomes));
     }
 
-    this.live = function(callback) {
-        this.selection(function(matingPool) {
-            var offsets = [
-                [ _.random(0, 3), _.random(4, 8) ],
-                [ _.random(0, 3), _.random(4, 8) ],
-                [ _.random(0, 3), _.random(4, 8) ]
-            ];
-
-            for (var individualIndex = 0; individualIndex < matingPool.length; individualIndex++) {
-                self.crossover([ matingPool[individualIndex], matingPool[individualIndex++] ], offsets, function() {
-                    _.each(individuals, function(individual) {
-                        self.mutate(individual, function() {
-                            callback();
-                        });
-                    });
-                });
-            }
+    this.fittestIndividual = function() {
+        return _.max(individuals, function(individual) {
+            return individual.fitness;
         });
     };
 
+    this.individuals = individuals;
+};
+
+var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
+    var self = this;
+
+    var population ;
+    var ideal;
+
+    this.TOURNAMENT_SIZE = numberOfIndividuals / 5;
+    this.MUTATION_AMOUNT = 3;
+
+    population = new Population(numberOfIndividuals, numberOfChromosomes);
+    ideal = new Individual(numberOfChromosomes);
+
+    this.live = function(callback) {
+        var newPopulation = new Population(population.individuals.length, population.individuals[0].chromosomes.length);
+
+        _.each(newPopulation.individuals, function(newIndividual, newIndividualIndex) {
+            self.crossover(function(offspring) {
+                self.mutate(offspring, function(mutatedOffspring) {
+                    newIndividual = mutatedOffspring;
+                });
+            });
+        });
+
+        population = newPopulation;
+    };
+
     this.computeFitness = function() {
-        _.each(individuals, function(individual) {
+        _.each(population.individuals, function(individual) {
 
             var differences = computeIndividualDifferences(individual, ideal);
 
@@ -85,61 +95,59 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         }
     };
 
-    this.selection = function(callback) {
-        this.computeFitness();
+    this.selection = function() {
+        var opponents = [];
 
-        matingPool = [];
-        while(matingPool.length < Math.floor(individuals.length * this.MATING_RATIO)) {
-            var opponents = [];
+        while (opponents.length < this.TOURNAMENT_SIZE) {
+            var randomIndividual = _.sample(population.individuals);
 
-            while (opponents < this.TOURNAMENT_SIZE) {
-                var randomIndividual = _.sample(individuals);
-
-                if (!_.contains(matingPool, randomIndividual) && !_.contains(opponents, randomIndividual)) {
-                    opponents.push(randomIndividual);
-                }
+            if (!_.contains(opponents, randomIndividual)) {
+                opponents.push(randomIndividual);
             }
-
-            var winner = _.max(opponents, function(mate) {
-                return mate.fitness;
-            });
-
-            matingPool.push(winner);
         }
 
-        callback(matingPool);
+        return _.max(opponents, function(mate) {
+            return mate.fitness;
+        });
     };
 
-    this.crossover = function(individuals, offsets, callback) {
-        _.each(individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
-            crossoverChromosomes([ chromosome, individuals[1].chromosomes[chromosomeIndex] ]);
-        });
+    this.crossover = function(callback) {
+        var offspring = new Individual(population.individuals[0].chromosomes.length);
 
-        callback();
+        var parents = [ this.selection() ];
+        findParents();
 
-        function crossoverChromosomes(chromosomes) {
-            var genes = [
-                [
-                    crossoverGenes([ chromosomes[0].genes[0], chromosomes[1].genes[0] ], offsets[0]),
-                    crossoverGenes([ chromosomes[0].genes[1], chromosomes[1].genes[1] ], offsets[1]),
-                    crossoverGenes([ chromosomes[0].genes[2], chromosomes[1].genes[2] ], offsets[2])
-                ],
-                [
-                    crossoverGenes([ chromosomes[1].genes[0], chromosomes[0].genes[0] ], offsets[0]),
-                    crossoverGenes([ chromosomes[1].genes[1], chromosomes[0].genes[1] ], offsets[1]),
-                    crossoverGenes([ chromosomes[1].genes[2], chromosomes[0].genes[2] ], offsets[2])
-                ]
-            ];
+        crossoverChromosomes();
 
-            chromosomes[0].genes = genes[0];
-            chromosomes[1].genes = genes[1];
+        callback(offspring, parents);
+
+        function findParents() {
+            var randomParent = self.selection();
+            while (_.contains(parents, randomParent)) {
+                randomParent = self.selection();
+            }
+
+            parents.push(randomParent);
         }
 
-        function crossoverGenes(genes, offsets) {
+        function crossoverChromosomes() {
+            _.each(offspring.chromosomes, function(offspringChromosome, offspringChromosomeIndex) {
+                var offspringGenes = [];
+
+                _.each(offspringChromosome.genes, function(offspringGene, offspringGeneIndex) {
+                    offspringGenes.push(crossoverGenes([ parents[0].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex], parents[1].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex] ]));
+                });
+
+                offspringChromosome.genes = offspringGenes;
+            });
+        }
+
+        function crossoverGenes(genes) {
+            var randomOffset = _.random(1, genes[0].length - 2);
+
             return _.flatten([
-                _.first(genes[1], offsets[0]),
-                _.last(_.first(genes[0], offsets[1]), offsets[1] - offsets[0]),
-                _.last(genes[1], genes[0].length - offsets[1])
+                _.first(genes[1], randomOffset),
+                _.last(genes[0], genes[0].length - randomOffset)
             ]);
         }
     };
@@ -149,7 +157,7 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
             mutateChromosome(chromosome);
         });
 
-        callback();
+        callback(individual);
 
         function mutateChromosome(chromosome) {
             _.each(chromosome.genes, function(gene) {
@@ -168,16 +176,10 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
                     mutatedIndices.push(randomComponentIndex);
                 }
-            } while (mutatedIndices.length < 3);
+            } while (mutatedIndices.length < self.MUTATION_AMOUNT);
         }
     };
 
-    this.fittestIndividual = function() {
-        return _.max(individuals, function(individual) {
-            return individual.fitness;
-        });
-    };
-
-    this.individuals = individuals;
+    this.population = population;
     this.ideal = ideal;
 };
