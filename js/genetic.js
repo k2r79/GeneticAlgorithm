@@ -30,6 +30,9 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     var ideal;
     var matingPool;
 
+    this.MATING_RATIO = 0.60;
+    this.TOURNAMENT_SIZE = numberOfIndividuals / 5;
+
     for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
         individuals[individualIndex] = new Individual(numberOfChromosomes);
         ideal = new Individual(numberOfChromosomes);
@@ -86,29 +89,23 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         this.computeFitness();
 
         matingPool = [];
+        while(matingPool.length < Math.floor(individuals.length * this.MATING_RATIO)) {
+            var opponents = [];
 
-        var individualIndex = 0;
-        while(matingPool.length < individuals.length - 1) {
+            while (opponents < this.TOURNAMENT_SIZE) {
+                var randomIndividual = _.sample(individuals);
 
-            var individual = individuals[individualIndex];
-            var randomIndividual = _.sample(individuals);
-
-            if (randomIndividual !== individual) {
-                var winner = _.max([ individual, randomIndividual ], function(mate) {
-                    return mate.fitness;
-                });
-
-                if (!_.contains(matingPool, winner)) {
-                    matingPool.push(winner);
+                if (!_.contains(matingPool, randomIndividual) && !_.contains(opponents, randomIndividual)) {
+                    opponents.push(randomIndividual);
                 }
             }
 
-            if (++individualIndex >= individuals.length) {
-                individualIndex = 0;
-            }
-        }
+            var winner = _.max(opponents, function(mate) {
+                return mate.fitness;
+            });
 
-        matingPool.push(_.difference(matingPool, individuals));
+            matingPool.push(winner);
+        }
 
         callback(matingPool);
     };
