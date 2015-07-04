@@ -11,6 +11,8 @@
 
     <br/><br/>
     <canvas id="fitness-chart" width="500px" height="300px"></canvas>
+    <br/>
+    <canvas id="highest-fitness-chart" width="500px" height="300px"></canvas>
 
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <script src="node_modules/underscore/underscore-min.js"></script>
@@ -22,6 +24,10 @@
         var fitnessChartContext = fitnessChartCanvas.getContext("2d");
         var fitnessChart;
 
+        var highestFitnessChartCanvas = $("#highest-fitness-chart")[0];
+        var highestFitnessChartContext = highestFitnessChartCanvas.getContext("2d");
+        var highestFitnessChart;
+
         var canvas = $("#canvas")[0];
         var context = canvas.getContext("2d");
         var idealImage = new Image();
@@ -29,27 +35,48 @@
         var geneticCode = new GeneticCode(10, canvas.width / 2 * canvas.height);
         var generation = 0;
 
+        var highestFitnesses = [];
+
         $(document).ready(function() {
             drawIdealImage();
             drawGeneticImage();
 
             setupFitnessChart();
+            setupHighestFitnessChart();
 
             $('#live').click(function() {
-                for (var i = 0; i < 1000; i++) {
+                var max = 10000;
+                for (var i = 0; i < max; i++) {
                     geneticCode.live(function() {});
 
                     generation++;
                     console.log(generation);
+
+                    if (i % (max / 40) == 0) {
+                        highestFitnesses.push(geneticCode.fittestIndividual().fitness);
+                    }
                 }
 
                 drawGeneticImage();
 
-                _.each(geneticCode.individuals, function(individual, individualIndex) {
-                    fitnessChart.datasets[0].bars[individualIndex].value = individual.fitness;
-                });
+                updateFitnessChart();
+                updateHighestFitnessChart();
 
-                fitnessChart.update();
+                function updateFitnessChart() {
+                    _.each(geneticCode.individuals, function(individual, individualIndex) {
+                        fitnessChart.datasets[0].bars[individualIndex].value = individual.fitness;
+                    });
+
+                    fitnessChart.update();
+                }
+
+                function updateHighestFitnessChart() {
+                    _.each(highestFitnesses, function(highestFitness, highestFitnessIndex) {
+                        highestFitnessChart.addData([ highestFitness ], highestFitnessIndex);
+                    });
+
+                    highestFitnessChart.update();
+                }
             });
 
             function setupFitnessChart() {
@@ -84,6 +111,24 @@
                 };
 
                 fitnessChart = new Chart(fitnessChartContext).Bar(data);
+            }
+
+            function setupHighestFitnessChart() {
+                var data = {
+                    labels: [ 0 ],
+                    datasets: [
+                        {
+                            label: "Highest Fitness",
+                            fillColor: "rgba(220,220,220,0.5)",
+                            strokeColor: "rgba(220,220,220,0.8)",
+                            highlightFill: "rgba(220,220,220,0.75)",
+                            highlightStroke: "rgba(220,220,220,1)",
+                            data: [ geneticCode.fittestIndividual().fitness ]
+                        }
+                    ]
+                };
+
+                highestFitnessChart = new Chart(highestFitnessChartContext).Line(data);
             }
 
             function drawIdealImage() {
