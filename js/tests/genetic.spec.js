@@ -170,8 +170,13 @@ describe("A Genetic Code", function() {
 
         geneticCode.mutate(geneticCode.individuals[0], function() {
             _.each(geneticCode.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
+
                 _.each(chromosome.genes, function(gene, geneIndex) {
-                    expect(gene).to.not.deep.equal(geneInitialStates[chromosomeIndex][geneIndex]);
+                    var differences = _.reduce(gene, function(memo, value, index) {
+                        return memo + ((value == geneInitialStates[chromosomeIndex][geneIndex][index]) ? 0 : 1);
+                    }, 0);
+
+                    expect(differences).to.equal(3);
                 });
             });
 

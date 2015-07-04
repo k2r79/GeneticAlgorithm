@@ -43,13 +43,15 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
                 [ _.random(0, 3), _.random(4, 8) ]
             ];
 
-            self.crossover([ _.sample(matingPool), _.sample(matingPool) ], offsets, function() {
-                _.each(individuals, function(individual) {
-                    self.mutate(individual, function() {
-                        callback();
+            for (var individualIndex = 0; individualIndex < matingPool.length; individualIndex++) {
+                self.crossover([ matingPool[individualIndex], matingPool[individualIndex++] ], offsets, function() {
+                    _.each(individuals, function(individual) {
+                        self.mutate(individual, function() {
+                            callback();
+                        });
                     });
                 });
-            });
+            }
         });
     };
 
@@ -87,7 +89,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
         var individualIndex = 0;
         while(matingPool.length < individuals.length - 1) {
-            debugger;
 
             var individual = individuals[individualIndex];
             var randomIndividual = _.sample(individuals);
@@ -154,11 +155,23 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         callback();
 
         function mutateChromosome(chromosome) {
-            _.each(chromosome.genes, function(gene, geneIndex) {
-                var randomComponentIndex = _.random(0, chromosome.genes.length - 1);
+            _.each(chromosome.genes, function(gene) {
+                mutateGene(gene);
+            })
+        }
 
-                gene[randomComponentIndex] = gene[randomComponentIndex] == 1 ? 0 : 1;
-            });
+        function mutateGene(gene) {
+            var mutatedIndices = [];
+
+            do {
+                var randomComponentIndex = _.random(0, gene.length - 1);
+
+                if (!_.contains(mutatedIndices, randomComponentIndex)) {
+                    gene[randomComponentIndex] = gene[randomComponentIndex] == 1 ? 0 : 1;
+
+                    mutatedIndices.push(randomComponentIndex);
+                }
+            } while (mutatedIndices.length < 3);
         }
     };
 

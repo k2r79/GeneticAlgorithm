@@ -3,58 +3,104 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>Genetic Algorithm</title>
+</head>
+<body>
+    <canvas id="canvas" width="100" height="50"></canvas>
+    <br/>
+    <button id="live">Make it live !</button>
+
+    <br/><br/>
+    <canvas id="fitness-chart" width="500px" height="300px"></canvas>
 
     <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <script src="node_modules/underscore/underscore-min.js"></script>
     <script src="js/genetic.js"></script>
     <script src="js/image-lib.js"></script>
-</head>
-<body>
-    <canvas id="canvas" width="100" height="50"></canvas>
-    <button id="live">Make it live !</button>
-
+    <script src="bower_components/Chart.js/Chart.min.js"></script>
     <script>
+        var fitnessChartCanvas = $("#fitness-chart")[0];
+        var fitnessChartContext = fitnessChartCanvas.getContext("2d");
+        var fitnessChart;
+
         var canvas = $("#canvas")[0];
         var context = canvas.getContext("2d");
         var idealImage = new Image();
 
-        var geneticCode = new GeneticCode(100, canvas.width / 2 * canvas.height);
+        var geneticCode = new GeneticCode(10, canvas.width / 2 * canvas.height);
         var generation = 0;
 
         $(document).ready(function() {
             drawIdealImage();
-
             drawGeneticImage();
 
-            $('#live').click(function() {
-                for (var i = 0; i < 50; i++) {
-                    geneticCode.live(function() {
+            setupFitnessChart();
 
-                    });
+            $('#live').click(function() {
+                for (var i = 0; i < 10000; i++) {
+                    geneticCode.live(function() {});
 
                     generation++;
-
                     console.log(generation);
                 }
 
                 drawGeneticImage();
+
+                _.each(geneticCode.individuals, function(individual, individualIndex) {
+                    fitnessChart.datasets[0].bars[individualIndex].value = individual.fitness;
+                });
+
+                fitnessChart.update();
             });
 
+            function setupFitnessChart() {
+                geneticCode.computeFitness();
+
+                var range = _.range(0, geneticCode.individuals.length);
+
+                var startFitnesses = _.map(geneticCode.individuals, function(individual) {
+                    return individual.fitness;
+                });
+
+                var data = {
+                    labels: range,
+                    datasets: [
+                        {
+                            label: "Fitness",
+                            fillColor: "rgba(220,220,220,0.5)",
+                            strokeColor: "rgba(220,220,220,0.8)",
+                            highlightFill: "rgba(220,220,220,0.75)",
+                            highlightStroke: "rgba(220,220,220,1)",
+                            data: startFitnesses
+                        },
+                        {
+                            label: "Start Fitness",
+                            fillColor: "rgba(220,0,0,0.5)",
+                            strokeColor: "rgba(220,0,0,0.8)",
+                            highlightFill: "rgba(220,0,0,0.75)",
+                            highlightStroke: "rgba(220,0,0,1)",
+                            data: startFitnesses
+                        }
+                    ]
+                };
+
+                fitnessChart = new Chart(fitnessChartContext).Bar(data);
+            }
+
             function drawIdealImage() {
-                context.beginPath();
-                context.rect(0, 0, canvas.width / 2, canvas.height);
-                context.fillStyle = 'red';
-                context.fill();
-
-                setIdealImage();
-
-//                idealImage.onload = function () {
-//                    context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+//                context.beginPath();
+//                context.rect(0, 0, canvas.width / 2, canvas.height);
+//                context.fillStyle = 'red';
+//                context.fill();
 //
-//                    setIdealImage();
-//                };
-//
-//                idealImage.src = "images/minion.jpg";
+//                setIdealImage();
+
+                idealImage.onload = function () {
+                    context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+
+                    setIdealImage();
+                };
+
+                idealImage.src = "images/minion.jpg";
             }
 
             function setIdealImage() {
