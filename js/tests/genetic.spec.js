@@ -115,13 +115,11 @@ describe("A Genetic Code", function() {
     });
 
     it("has a selection phase", function(done) {
-        geneticCode.setMatingRatio(0.50);
-
         geneticCode.individuals.push(new Individual(2));
         geneticCode.individuals.push(new Individual(2));
 
         geneticCode.selection(function(matingPool) {
-            expect(matingPool.length).to.equal(2);
+            expect(matingPool.length).to.equal(geneticCode.individuals.length);
 
             done();
         });

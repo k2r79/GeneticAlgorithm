@@ -30,8 +30,6 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
     var ideal;
     var matingPool;
 
-    var MATING_RATIO = 0.10;
-
     for (var individualIndex = 0; individualIndex < numberOfIndividuals; individualIndex++) {
         individuals[individualIndex] = new Individual(numberOfChromosomes);
         ideal = new Individual(numberOfChromosomes);
@@ -88,7 +86,8 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
         matingPool = [];
 
         var individualIndex = 0;
-        while(matingPool.length < individuals.length * MATING_RATIO) {
+        while(matingPool.length < individuals.length - 1) {
+            debugger;
 
             var individual = individuals[individualIndex];
             var randomIndividual = _.sample(individuals);
@@ -107,6 +106,8 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
                 individualIndex = 0;
             }
         }
+
+        matingPool.push(_.difference(matingPool, individuals));
 
         callback(matingPool);
     };
@@ -169,8 +170,4 @@ var GeneticCode = function(numberOfIndividuals, numberOfChromosomes) {
 
     this.individuals = individuals;
     this.ideal = ideal;
-
-    this.setMatingRatio = function(ratio) {
-        MATING_RATIO = ratio;
-    };
 };

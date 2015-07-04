@@ -18,7 +18,7 @@
         var context = canvas.getContext("2d");
         var idealImage = new Image();
 
-        var geneticCode = new GeneticCode(4, canvas.width / 2 * canvas.height);
+        var geneticCode = new GeneticCode(100, canvas.width / 2 * canvas.height);
         var generation = 0;
 
         $(document).ready(function() {
@@ -27,23 +27,34 @@
             drawGeneticImage();
 
             $('#live').click(function() {
-                for (var i = 0; i < 2000; i++) {
-                    geneticCode.live(drawGeneticImage);
+                for (var i = 0; i < 50; i++) {
+                    geneticCode.live(function() {
+
+                    });
 
                     generation++;
 
                     console.log(generation);
                 }
+
+                drawGeneticImage();
             });
 
             function drawIdealImage() {
-                idealImage.onload = function () {
-                    context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+                context.beginPath();
+                context.rect(0, 0, canvas.width / 2, canvas.height);
+                context.fillStyle = 'red';
+                context.fill();
 
-                    setIdealImage();
-                };
+                setIdealImage();
 
-                idealImage.src = "images/minion.jpg";
+//                idealImage.onload = function () {
+//                    context.drawImage(idealImage, 0, 0, canvas.width / 2, canvas.height);
+//
+//                    setIdealImage();
+//                };
+//
+//                idealImage.src = "images/minion.jpg";
             }
 
             function setIdealImage() {
@@ -61,6 +72,8 @@
             }
 
             function drawGeneticImage() {
+                requestAnimationFrame(drawGeneticImage);
+
                 var geneticImageData = context.createImageData(canvas.width / 2, canvas.height);
 
                 _.each(geneticCode.fittestIndividual().chromosomes, function(chromosome, chromosomeIndex) {
