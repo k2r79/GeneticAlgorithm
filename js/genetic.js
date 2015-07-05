@@ -1,6 +1,5 @@
 var Chromosome = function() {
     var genes = [];
-    var fitness = null;
 
     for (var geneIndex = 0; geneIndex < 3; geneIndex++) {
         genes[geneIndex] = [];
@@ -11,7 +10,6 @@ var Chromosome = function() {
     }
 
     this.genes = genes;
-    this.fitness = fitness;
 };
 
 var Individual = function(numberOfChromosomes) {
@@ -45,31 +43,30 @@ var Population = function(numberOfIndividuals, numberOfChromosomes) {
 var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
     var self = this;
 
-    var population ;
-    var ideal;
+    this.TOURNAMENT_SIZE = Math.floor(numberOfIndividuals / 3);
+    this.MUTATION_RATE = 0.01;
 
-    this.TOURNAMENT_SIZE = numberOfIndividuals / 5;
-    this.MUTATION_AMOUNT = 3;
+    var population = new Population(numberOfIndividuals, numberOfChromosomes);
+    var ideal = new Individual(numberOfChromosomes);
 
-    population = new Population(numberOfIndividuals, numberOfChromosomes);
-    ideal = new Individual(numberOfChromosomes);
-
-    this.live = function(callback) {
+    this.live = function() {
         var newPopulation = new Population(population.individuals.length, population.individuals[0].chromosomes.length);
 
         _.each(newPopulation.individuals, function(newIndividual, newIndividualIndex) {
             self.crossover(function(offspring) {
                 self.mutate(offspring, function(mutatedOffspring) {
-                    newIndividual = mutatedOffspring;
+                    newPopulation.individuals[newIndividualIndex] = mutatedOffspring;
                 });
             });
         });
 
-        population = newPopulation;
+        this.population = newPopulation;
+
+        this.computeFitness();
     };
 
     this.computeFitness = function() {
-        _.each(population.individuals, function(individual) {
+        _.each(this.population.individuals, function(individual) {
 
             var differences = computeIndividualDifferences(individual, ideal);
 
@@ -166,17 +163,11 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
         }
 
         function mutateGene(gene) {
-            var mutatedIndices = [];
-
-            do {
-                var randomComponentIndex = _.random(0, gene.length - 1);
-
-                if (!_.contains(mutatedIndices, randomComponentIndex)) {
-                    gene[randomComponentIndex] = gene[randomComponentIndex] == 1 ? 0 : 1;
-
-                    mutatedIndices.push(randomComponentIndex);
+            _.each(gene, function(component, componentIndex) {
+                if (Math.random() <= self.MUTATION_RATE) {
+                    gene[componentIndex] = (component == 1 ? 0 : 1);
                 }
-            } while (mutatedIndices.length < self.MUTATION_AMOUNT);
+            });
         }
     };
 

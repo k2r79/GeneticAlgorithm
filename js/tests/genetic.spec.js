@@ -70,6 +70,8 @@ describe("A Genetic Algorithm", function() {
 
     beforeEach(function(done) {
         geneticAlgorithm = new GeneticAlgorithm(2, 2);
+        geneticAlgorithm.TOURNAMENT_SIZE = 2;
+        geneticAlgorithm.MUTATION_RATE = 1.00;
 
         setChromosomes();
         setIdeal();
@@ -131,19 +133,32 @@ describe("A Genetic Algorithm", function() {
         done();
     });
 
+    it("can compute the population\'s fitness", function(done) {
+        geneticAlgorithm.computeFitness();
+
+        expect(geneticAlgorithm.population.individuals[0].fitness).to.equal(0.6875);
+        expect(geneticAlgorithm.population.individuals[1].fitness).to.equal(0.45833333333333337);
+
+        done();
+    });
+
     it("has a selection phase", function(done) {
         geneticAlgorithm.TOURNAMENT_SIZE = 4;
 
-        geneticAlgorithm.population.individuals.push(new Individual(2));
-        geneticAlgorithm.population.individuals[2].fitness = 0.80;
-
-        geneticAlgorithm.population.individuals.push(new Individual(2));
-        geneticAlgorithm.population.individuals[3].fitness = 0.10;
+        addChallengers();
 
         expect(geneticAlgorithm.selection().fitness).to.equal(geneticAlgorithm.population.individuals[2].fitness);
 
         done();
     });
+
+    function addChallengers() {
+        geneticAlgorithm.population.individuals.push(new Individual(2));
+        geneticAlgorithm.population.individuals[2].fitness = 0.80;
+
+        geneticAlgorithm.population.individuals.push(new Individual(2));
+        geneticAlgorithm.population.individuals[3].fitness = 0.10;
+    }
 
     it("has a crossover phase", function(done) {
         geneticAlgorithm.crossover(function(offspring, parents) {
@@ -168,8 +183,6 @@ describe("A Genetic Algorithm", function() {
     });
 
     it("has a mutation phase", function(done) {
-        geneticAlgorithm.MUTATION_AMOUNT = 3;
-
         var geneInitialStates = [
             _.map(geneticAlgorithm.population.individuals[0].chromosomes[0].genes, _.clone),
             _.map(geneticAlgorithm.population.individuals[0].chromosomes[1].genes, _.clone)
@@ -179,11 +192,7 @@ describe("A Genetic Algorithm", function() {
             _.each(geneticAlgorithm.population.individuals[0].chromosomes, function(chromosome, chromosomeIndex) {
 
                 _.each(chromosome.genes, function(gene, geneIndex) {
-                    var differences = _.reduce(gene, function(memo, value, index) {
-                        return memo + ((value == geneInitialStates[chromosomeIndex][geneIndex][index]) ? 0 : 1);
-                    }, 0);
-
-                    expect(differences).to.equal(geneticAlgorithm.MUTATION_AMOUNT);
+                    expect(gene).to.not.deep.equal(geneInitialStates[geneIndex]);
                 });
             });
 
@@ -191,17 +200,21 @@ describe("A Genetic Algorithm", function() {
         });
     });
 
-    //it("can live !", function(done) {
-    //    geneticAlgorithm.selection = sinon.spy();
-    //    geneticAlgorithm.crossover = sinon.spy();
-    //    geneticAlgorithm.mutate = sinon.spy();
-    //
-    //    geneticAlgorithm.live(function() {
-    //        expect(geneticAlgorithm.selection.called).to.equal(true);
-    //        expect(geneticAlgorithm.crossover.called).to.equal(true);
-    //        expect(geneticAlgorithm.mutate.called).to.equal(true);
-    //
-    //        done();
-    //    });
-    //});
+    it("can live !", function(done) {
+        var initialPopulation = _.map(geneticAlgorithm.population.individuals, _.clone);
+
+        geneticAlgorithm.live();
+
+        _.each(geneticAlgorithm.population.individuals, function(individual, individualIndex) {
+            _.each(individual.chromosomes, function(chromosome, chromosomeIndex) {
+                _.each(chromosome.genes, function(gene, geneIndex) {
+                    expect(gene).to.not.deep.equal(initialPopulation[individualIndex].chromosomes[chromosomeIndex].genes[geneIndex]);
+                });
+            });
+
+            expect(individual.fitness).to.not.equal(null);
+        });
+
+        done();
+    });
 });
