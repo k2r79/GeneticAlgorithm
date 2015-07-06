@@ -15,6 +15,21 @@ describe("The Image Lib", function() {
         done();
     });
 
+    it("can convert a binary pixel to RGBA", function(done) {
+        var binaryPixel = [
+            [ 1, 0, 0, 0, 0, 1, 1, 1],
+            [ 0, 0, 0, 1, 0, 1, 1, 0 ],
+            [ 0, 1, 1, 0, 0, 1, 0, 0 ]
+        ];
+        var rgbaPixel = ImageLib.pixelToRGBA(binaryPixel);
+
+        expect(rgbaPixel.length).to.equal(4);
+
+        expect(rgbaPixel).to.deep.equal([ 135, 22, 100, 255]);
+
+        done();
+    });
+
     it("can convert an RGBA image data to binary", function(done) {
         var rgbaImageData = [ 135, 22, 100, 255, 143, 49, 25, 255, 250, 89, 199, 255];
         var binaryImageData = ImageLib.imageDataToBinary(rgbaImageData);

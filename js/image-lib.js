@@ -21,6 +21,21 @@ ImageLib.pixelToBinary = function(pixel) {
     }
 };
 
+ImageLib.pixelToRGBA = function(pixel) {
+    var rgbaPixel = _.map(pixel, function(component) {
+        return binaryToInteger(component);
+    });
+
+    rgbaPixel.push(255);
+
+    return rgbaPixel;
+
+    function binaryToInteger(binary) {
+        return parseInt(binary.join(""), 2);
+    }
+};
+
+
 ImageLib.imageDataToBinary = function(imageData) {
     var binaryData = [];
 

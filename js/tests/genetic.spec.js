@@ -134,10 +134,13 @@ describe("A Genetic Algorithm", function() {
     });
 
     it("can compute the population\'s fitness", function(done) {
+        geneticAlgorithm.population.individuals.push(geneticAlgorithm.ideal);
+
         geneticAlgorithm.computeFitness();
 
         expect(geneticAlgorithm.population.individuals[0].fitness).to.equal(0.6875);
         expect(geneticAlgorithm.population.individuals[1].fitness).to.equal(0.45833333333333337);
+        expect(geneticAlgorithm.population.individuals[2].fitness).to.equal(1.00);
 
         done();
     });
@@ -201,6 +204,7 @@ describe("A Genetic Algorithm", function() {
     });
 
     it("can live !", function(done) {
+        var initialFittestIndividual = _.clone(geneticAlgorithm.population.fittestIndividual());
         var initialPopulation = _.map(geneticAlgorithm.population.individuals, _.clone);
 
         geneticAlgorithm.live();
@@ -208,7 +212,11 @@ describe("A Genetic Algorithm", function() {
         _.each(geneticAlgorithm.population.individuals, function(individual, individualIndex) {
             _.each(individual.chromosomes, function(chromosome, chromosomeIndex) {
                 _.each(chromosome.genes, function(gene, geneIndex) {
-                    expect(gene).to.not.deep.equal(initialPopulation[individualIndex].chromosomes[chromosomeIndex].genes[geneIndex]);
+                    if (individualIndex == 0) {
+                        expect(gene).to.deep.equal(initialFittestIndividual.chromosomes[chromosomeIndex].genes[geneIndex]);
+                    } else {
+                        expect(gene).to.not.deep.equal(initialPopulation[individualIndex].chromosomes[chromosomeIndex].genes[geneIndex]);
+                    }
                 });
             });
 

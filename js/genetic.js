@@ -44,6 +44,7 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
     var self = this;
 
     this.TOURNAMENT_SIZE = Math.floor(numberOfIndividuals / 3);
+    this.CROSSOVER_RATIO = 0.50;
     this.MUTATION_RATE = 0.01;
 
     var population = new Population(numberOfIndividuals, numberOfChromosomes);
@@ -53,11 +54,15 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
         var newPopulation = new Population(population.individuals.length, population.individuals[0].chromosomes.length);
 
         _.each(newPopulation.individuals, function(newIndividual, newIndividualIndex) {
-            self.crossover(function(offspring) {
-                self.mutate(offspring, function(mutatedOffspring) {
-                    newPopulation.individuals[newIndividualIndex] = mutatedOffspring;
+            if (newIndividualIndex == 0) {
+                newPopulation.individuals[newIndividualIndex] = population.fittestIndividual();
+            } else {
+                self.crossover(function(offspring) {
+                    self.mutate(offspring, function(mutatedOffspring) {
+                        newPopulation.individuals[newIndividualIndex] = mutatedOffspring;
+                    });
                 });
-            });
+            }
         });
 
         this.population = newPopulation;
@@ -82,11 +87,13 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
         function computeChromosomeDifferences(chromosome, idealChromosome) {
             return _.reduce(chromosome.genes, function(memo, gene, index) {
                 return memo + computeGeneDifference(gene, idealChromosome.genes[index]);
+
             }, 0);
         }
 
         function computeGeneDifference(gene, idealGene) {
             return _.reduce(gene, function(memo, component, index) {
+
                 return memo + Math.abs(component - idealGene[index]);
             }, 0);
         }
@@ -132,7 +139,10 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
                 var offspringGenes = [];
 
                 _.each(offspringChromosome.genes, function(offspringGene, offspringGeneIndex) {
-                    offspringGenes.push(crossoverGenes([ parents[0].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex], parents[1].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex] ]));
+                    offspringGenes.push(crossoverGenes([
+                        parents[0].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex],
+                        parents[1].chromosomes[offspringChromosomeIndex].genes[offspringGeneIndex]
+                    ]));
                 });
 
                 offspringChromosome.genes = offspringGenes;
@@ -140,12 +150,17 @@ var GeneticAlgorithm = function(numberOfIndividuals, numberOfChromosomes) {
         }
 
         function crossoverGenes(genes) {
-            var randomOffset = _.random(1, genes[0].length - 2);
+            var offspringGene = [];
 
-            return _.flatten([
-                _.first(genes[1], randomOffset),
-                _.last(genes[0], genes[0].length - randomOffset)
-            ]);
+            _.each(genes[0], function(component, componentIndex) {
+                if (Math.random() <= self.CROSSOVER_RATIO) {
+                    offspringGene.push(component);
+                } else {
+                    offspringGene.push(genes[1][componentIndex]);
+                }
+            });
+
+            return offspringGene;
         }
     };
 
