@@ -5,7 +5,7 @@
     <title>Genetic Algorithm</title>
 </head>
 <body>
-    <canvas id="canvas" width="4" height="2"></canvas>
+    <canvas id="canvas" width="10" height="5"></canvas>
     <br/>
     <button id="live">Make it live !</button>
 
@@ -46,9 +46,10 @@
         var context = canvas.getContext("2d");
         var idealImage = new Image();
 
-        var geneticAlgorithm = new GeneticAlgorithm(5, canvas.width / 2 * canvas.height);
-        geneticAlgorithm.TOURNAMENT_SIZE = geneticAlgorithm.population.individuals.length / 10;
-        geneticAlgorithm.MUTATION_RATE = 0.50;
+        var geneticAlgorithm = new GeneticAlgorithm(50, canvas.width / 2 * canvas.height);
+        geneticAlgorithm.TOURNAMENT_SIZE = 20;
+        geneticAlgorithm.CROSSOVER_RATIO = 0.35;
+        geneticAlgorithm.MUTATION_RATE = 0.06;
 
         var generation = 0;
 
